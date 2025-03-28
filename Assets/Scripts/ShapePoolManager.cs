@@ -77,6 +77,7 @@ public class ShapePoolManager : Singleton<ShapePoolManager>
         int index = FindIndex(shape);
         shapes.RemoveAt(index);
         shape.inUse = true;
+        shape.gameObject.layer = CameraManager.Instance.currentStateLayer;
     }
 
     private Shape FindFirstShape(bool isActive)
@@ -110,7 +111,7 @@ public class ShapePoolManager : Singleton<ShapePoolManager>
     private Shape InstantiateNewShape(Vector3 postion, Quaternion rotation)
     {
         GameObject newShapeGameObject = Instantiate(shapePrefab, postion, rotation);
-        newShapeGameObject.layer = gameObject.layer;
+        newShapeGameObject.gameObject.layer = CameraManager.Instance.candidateLayer;
         Shape newShape = newShapeGameObject.GetComponent<Shape>();
         shapes.Add(newShape);
         return newShape;
@@ -119,7 +120,7 @@ public class ShapePoolManager : Singleton<ShapePoolManager>
     private Shape InstantiateNewShape(Shape shape)
     {
         GameObject newShapeGameObject = Instantiate(shape.gameObject);
-        newShapeGameObject.layer = gameObject.layer;
+        newShapeGameObject.gameObject.layer = CameraManager.Instance.candidateLayer;
         Shape newShape = newShapeGameObject.GetComponent<Shape>();
         shapes.Add(newShape);
         return newShape;

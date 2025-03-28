@@ -239,6 +239,18 @@ public class Shape : MonoBehaviour
 
     #endregion
 
+    #region debug
+
+    [Button]
+    private void CalculateScore()
+    {
+        score = -1;
+        CameraManager.Instance.CalculateScore(this);
+
+    }
+
+    #endregion
+
     #region obsolete
     [System.Obsolete]
     public void SetPosition(float x_pct, float y_pct)

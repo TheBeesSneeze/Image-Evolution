@@ -106,6 +106,8 @@ public class ShapeManager : Singleton<ShapeManager>
         {
             Destroy(NaturallySelectNewShape());
 
+            yield break;
+
             yield return null;
         }
     }    
@@ -269,30 +271,7 @@ public class ShapeManager : Singleton<ShapeManager>
         }
     }
 
-    void RemoveScoresUnderAverage()
-    {
-        int sum = 0;
-        int countbefore=shapes.Count;
-        for (int i = 0; i < shapes.Count; i++)
-        {
-            if (shapes[i].score < 0)
-                Debug.LogError("dont let this happen");
-
-            sum += shapes[i].score;
-        }
-        int avg = (int)((float)sum / (float)shapes.Count);
-
-        for(int i=0; i<shapes.Count; i++)
-        {
-            while (i<shapes.Count && shapes[i].score < avg)
-            {
-                ShapePoolManager.Instance.RemoveShape(shapes[i]);
-                shapes.RemoveAt(i); 
-            }
-        }
-
-        Debug.Log("removed " +(countbefore-shapes.Count)+"/"+countbefore);
-    }
+    
 
     #region sort
     /// <summary>
@@ -579,6 +558,32 @@ public class ShapeManager : Singleton<ShapeManager>
             Random_Partial_TweakShape(shape, scalar);
         }
 
+    }
+
+    [System.Obsolete]
+    void RemoveScoresUnderAverage()
+    {
+        int sum = 0;
+        int countbefore = shapes.Count;
+        for (int i = 0; i < shapes.Count; i++)
+        {
+            if (shapes[i].score < 0)
+                Debug.LogError("dont let this happen");
+
+            sum += shapes[i].score;
+        }
+        int avg = (int)((float)sum / (float)shapes.Count);
+
+        for (int i = 0; i < shapes.Count; i++)
+        {
+            while (i < shapes.Count && shapes[i].score < avg)
+            {
+                ShapePoolManager.Instance.RemoveShape(shapes[i]);
+                shapes.RemoveAt(i);
+            }
+        }
+
+        Debug.Log("removed " + (countbefore - shapes.Count) + "/" + countbefore);
     }
 
 

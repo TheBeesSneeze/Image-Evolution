@@ -2,8 +2,8 @@ using NaughtyAttributes;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 public class CameraManager : Singleton<CameraManager>
 {
 
@@ -19,8 +19,14 @@ public class CameraManager : Singleton<CameraManager>
     [Header("Material")]
     [SerializeField] Material differenceMaterial;
 
-    [Layer]
-    private LayerMask layer;
+    [SerializeField]
+    private RawImage debugImage;
+
+    [SerializeField] [Layer] public int currentStateLayer;
+    [SerializeField] [Layer] public int candidateLayer;
+
+    [SerializeField]
+    private LayerMask currentStateLayerMask, candidateLayerMask;
 
     private Texture2D sc;
     private Vector3 colorDifferenceSum;
@@ -34,11 +40,11 @@ public class CameraManager : Singleton<CameraManager>
     private int precision = 4;
     private Color bg_color;
 
+
     // Start is called before the first frame update
     void Start()
     {
         _camera = GetComponent<Camera>();
-        layer = gameObject.layer;
 
         currentState = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGBA32, false);
 
@@ -55,9 +61,11 @@ public class CameraManager : Singleton<CameraManager>
         index_offset = (index_offset + 1) % precision;
         //differenceMaterial.SetTexture("_Current_State", currentState);
 
+        _camera.backgroundColor = bg_color;
+        _camera.cullingMask = currentStateLayerMask;
         currentState = TakeScreenshot(currentState);
         currentStateColors = currentState.GetPixels();
-
+        _camera.cullingMask = candidateLayerMask;
     }
 
     public int CalculateScore()
@@ -83,28 +91,20 @@ public class CameraManager : Singleton<CameraManager>
 
     public int CalculateScore(Shape shape)
     {
-        /*
-         * TODO:
-         * change the culling layer in runtime
-         * get colors for just the shape literally nothing else
-         * change logic to check for if a != 0 => do averaging stuff
-         * 
-         */
-        if(shape.score != -1)
+        if(shape.score > -1)
             return shape.score;
 
         shape.gameObject.SetActive(true);
-        sc = TakeScreenshot(sc);
 
         if (ShapeManager.Instance.AverageColorMask && (ShapeManager.Instance.ApplyAverageToVariants || !shape.hasSetColor))
         {
-            float currentOpacity = shape.a;
-            shape.sprite.color = StaticUtilites.InvertColor(bg_color); // bg color bc its probably the most different color we can get :p
-            screenshotolors = GetShapeColorsAsAverageFromTarget(sc.GetPixels(), shape);
-            shape.sprite.color = shape.sprite.color.WithAlpha(currentOpacity);
+            screenshotolors = GetShapeColorsAsAverageFromTarget(shape);
         }
         else
+        {
+            sc = TakeScreenshot(sc);
             screenshotolors = sc.GetPixels();
+        }
 
         colorDifferenceSum = Vector3.zero;
         for (int i = index_offset; i < targetColors.Length; i+= precision)
@@ -118,8 +118,6 @@ public class CameraManager : Singleton<CameraManager>
         shape.gameObject.SetActive(false);
 
         return score;
-        //colorDifferenceSum *= 256;
-        //return (int)(colorDifferenceSum.x + colorDifferenceSum.y + colorDifferenceSum.z);
     }
 
 
@@ -136,34 +134,64 @@ public class CameraManager : Singleton<CameraManager>
         return outputTexture;
     }
 
-    private Color[] GetShapeColorsAsAverageFromTarget(Color[] colorsNoBorax, Shape currentShape)
+    /// <summary>
+    /// Find average color of area that shape encapsulates
+    /// also returns screen pixels 
+    /// </summary>
+    /// <param name="currentShape"></param>
+    /// <returns></returns>
+    private Color[] GetShapeColorsAsAverageFromTarget(Shape currentShape)
     {
+        /*
+         * potential optimization, make the color arrays smaller to account for precision
+         */
+
+        float currentOpacity = currentShape.a;
+        currentShape.sprite.color = Color.white;
+        _camera.backgroundColor = Color.clear;
+
+        sc = TakeScreenshot(sc);
+        screenshotolors = sc.GetPixels();
+
+        /*
+        Texture2D debugoutput = new Texture2D(sc.width, sc.height, sc.format, false);
+        debugoutput.SetPixels(screenshotolors);
+        debugoutput.Apply();
+        debugImage.texture = debugoutput; */
 
         Vector4 sum = Vector4.zero;
-        int count = 0;
+        float count = 0;
         //find when screenshot is different from current
-        for (int i = index_offset; i < colorsNoBorax.Length; i+=precision)
+        for (int i = index_offset; i < screenshotolors.Length; i+=precision)
         {
-            if (colorsNoBorax[i] != currentStateColors[i])
+            Debug.Log(screenshotolors[i].r);
+            if (screenshotolors[i].r > 0)
             {
-                sum += targetColors[i];
-                count++;
+                sum += targetColors[i] * screenshotolors[i].a;
+                count += screenshotolors[i].a;
             }
         }
-        Color avg_color = (Color)(sum / (float)count);
+        Color avg_color = (Color)(sum / count);
         avg_color.a = currentShape.sprite.color.a;
 
         // Apply color with avg 
-        for (int i = index_offset; i < colorsNoBorax.Length; i+= precision)
+        for (int i = index_offset; i < screenshotolors.Length; i+= precision)
         {
-            if (colorsNoBorax[i] != currentStateColors[i])
-            {
-                colorsNoBorax [i] = Color.Lerp(currentStateColors[i],avg_color,avg_color.a);
-            }
+            /*
+             * potential optimization find index of first / last difference in last for loop and use that here
+             */
+
+            if (screenshotolors[i].r == 0)
+                screenshotolors[i] = currentStateColors[i];
+            else if (currentStateColors[i].r == 1)
+                screenshotolors[i] = avg_color;
+            else
+                screenshotolors[i] = Color.Lerp(currentStateColors[i], avg_color, screenshotolors[i].r);
         }
 
+        avg_color.a = currentOpacity;   
         currentShape.SetColor(avg_color);
-        return colorsNoBorax;
+        return screenshotolors;
     }
 
     public void UpdateBackgroundColors()
@@ -172,7 +200,8 @@ public class CameraManager : Singleton<CameraManager>
 
         Camera[] cameras = FindObjectsOfType<Camera>();
         foreach(Camera cam in cameras) 
-            cam.backgroundColor = bg_color;
+            if(cam != _camera)
+                cam.backgroundColor = bg_color;
 
         OnShapeCreated();
     }
