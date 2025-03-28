@@ -79,12 +79,6 @@ public class ShapeManager : Singleton<ShapeManager>
         DebugHSDFGds();
     }
 
-    private void SetHalfSize()
-    {
-        halfsize = new Vector2(CameraManager.CameraWidthWorldSpace, CameraManager.CameraHeightWorldSpace);
-        scaledHalfSize = halfsize / 2;
-        scaledHalfSize *= 1.1f;
-    }
 
     async void DebugHSDFGds()
     {
@@ -105,8 +99,6 @@ public class ShapeManager : Singleton<ShapeManager>
         while (true)
         {
             Destroy(NaturallySelectNewShape());
-
-            yield break;
 
             yield return null;
         }
@@ -265,10 +257,12 @@ public class ShapeManager : Singleton<ShapeManager>
 
     void ScoreAllShapes()
     {
+        float t = Time.unscaledTime;
         for (int i = 0; i < shapes.Count; i++)
         {
             CameraManager.Instance.CalculateScore(shapes[i]);
         }
+        Debug.Log((Time.unscaledTime - t) + " seconds to score " + shapes.Count + " shapes");
     }
 
     
@@ -364,6 +358,13 @@ public class ShapeManager : Singleton<ShapeManager>
             ShapePoolManager.Instance.RemoveShape(shapes[index]);
             shapes.RemoveAt(index);
         }
+    }
+
+    private void SetHalfSize()
+    {
+        halfsize = new Vector2(CameraManager.CameraWidthWorldSpace, CameraManager.CameraHeightWorldSpace);
+        scaledHalfSize = halfsize / 2;
+        scaledHalfSize *= 1.1f;
     }
 
     #region shape manipulation
@@ -483,34 +484,10 @@ public class ShapeManager : Singleton<ShapeManager>
         if (StaticUtilites.CoinFlip()) shape.RandomizeZOrder(scalar);
     }
 
+    
 
-    public void CopyShapeController(ShapeManager other)
-    {
-        if (other == this)
-        {
-            Debug.LogWarning("bruh why");
-            return;
-        }
 
-        for (int i = 0; i < other.shapes.Count; i++)
-        {
-            if (i >= shapes.Count)
-            {
-                Shape shape = ShapePoolManager.Instance.CreateShape();
-                shape.CopyShape(other.shapes[i]);
-                shapes.Add(shape);
-                continue;
-            }
-            shapes[i].CopyShape(other.shapes[i]);
-        }
-
-        // if this shapes list is bigger, somehow
-        for (int i = other.shapes.Count; i < shapes.Count; i++)
-        {
-            ShapePoolManager.Instance.RemoveShape(shapes[i]);
-            shapes.RemoveAt(i);
-        }
-    }
+    
 
     #region obselete
 
@@ -540,6 +517,35 @@ public class ShapeManager : Singleton<ShapeManager>
             */
             candidateController.Accuracy = oldAccuracy;
 
+        }
+    }
+
+    [System.Obsolete]
+    public void CopyShapeController(ShapeManager other)
+    {
+        if (other == this)
+        {
+            Debug.LogWarning("bruh why");
+            return;
+        }
+
+        for (int i = 0; i < other.shapes.Count; i++)
+        {
+            if (i >= shapes.Count)
+            {
+                Shape shape = ShapePoolManager.Instance.CreateShape();
+                shape.CopyShape(other.shapes[i]);
+                shapes.Add(shape);
+                continue;
+            }
+            shapes[i].CopyShape(other.shapes[i]);
+        }
+
+        // if this shapes list is bigger, somehow
+        for (int i = other.shapes.Count; i < shapes.Count; i++)
+        {
+            ShapePoolManager.Instance.RemoveShape(shapes[i]);
+            shapes.RemoveAt(i);
         }
     }
 

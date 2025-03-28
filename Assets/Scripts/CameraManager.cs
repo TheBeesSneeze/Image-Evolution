@@ -164,7 +164,6 @@ public class CameraManager : Singleton<CameraManager>
         //find when screenshot is different from current
         for (int i = index_offset; i < screenshotolors.Length; i+=precision)
         {
-            Debug.Log(screenshotolors[i].r);
             if (screenshotolors[i].r > 0)
             {
                 sum += targetColors[i] * screenshotolors[i].a;
