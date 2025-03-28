@@ -233,10 +233,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4d2c40b6393282e4b97b9f8ca2a3e280, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  accuracy_text: {fileID: 0}
-  cameraController: {fileID: 0}
-  shapeController: {fileID: 0}
-  Accuracy: 0
 --- !u!114 &52524865
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -249,6 +245,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3f77e496e91ada4db364e6adf857f50, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  resolution: 128
   _camera: {fileID: 0}
   currentState: {fileID: 0}
   currentStateColors: []
@@ -2337,7 +2334,7 @@ MonoBehaviour:
   UseRejectedShapes: 1
   AllRejectedShapes: 1
   baseGenerations: 10
-  generationsToForceStop: 25
+  generationsToForceStop: 15
   initalRandomShapes: 25
   randomShapesIfShapesAreBad: 5
   shapeVariants: 7

@@ -32,7 +32,7 @@ public class ShapePoolManager : Singleton<ShapePoolManager>
             return InstantiateNewShape(shape);
         }
 
-        newShape.gameObject.SetActive(true);
+        newShape.sprite.enabled = true;
         newShape.Initialize();
         newShape.CopyShape(shape);
         newShape.inUse = true;
@@ -49,7 +49,7 @@ public class ShapePoolManager : Singleton<ShapePoolManager>
             newShape.inUse=true;
             return newShape;
         }
-        newShape.gameObject.SetActive(true);
+        newShape.sprite.enabled = true;
         newShape.transform.position = postion;
         newShape.transform.rotation = rotation;
         newShape.Initialize();
@@ -59,7 +59,7 @@ public class ShapePoolManager : Singleton<ShapePoolManager>
 
     public void RemoveShape(Shape shape)
     {
-        shape.gameObject.SetActive(false);
+        shape.sprite.enabled = false;
         shape.inUse = false;
         shape.OnRemoveFromPool();
     }

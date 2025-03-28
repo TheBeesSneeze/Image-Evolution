@@ -3,9 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.SocialPlatforms.Impl;
 using UnityEngine.UI;
 public class CameraManager : Singleton<CameraManager>
 {
+    [Header("Settings")]
+    public int resolution = 128;
+    [SerializeField] private int precision = 4;
+
 
     public static float CameraHeightWorldSpace => Instance._camera.orthographicSize * 2;
     public static float CameraWidthWorldSpace => CameraHeightWorldSpace * Instance._camera.aspect;
@@ -29,7 +34,8 @@ public class CameraManager : Singleton<CameraManager>
     private LayerMask currentStateLayerMask, candidateLayerMask, everythingLayerMask;
 
     private Texture2D sc;
-    private Vector3 colorDifferenceSum;
+    //private Vector3 colorDifferenceSum;
+    private float colorDifferenceSum;
     private Vector3 targetColor,currentColor,newColor;
     private Vector3 difference,newColorDifference;
 
@@ -37,7 +43,6 @@ public class CameraManager : Singleton<CameraManager>
     private Vector4[] targetColors;
     private Color[] screenshotolors;
     private int index_offset = 0;
-    private int precision = 4;
     private Color bg_color;
 
 
@@ -71,7 +76,7 @@ public class CameraManager : Singleton<CameraManager>
         _camera.cullingMask = currentStateLayerMask;
         currentState = TakeScreenshot(currentState);
         currentStateColors = currentState.GetPixels();
-        _camera.cullingMask = candidateLayerMask;
+        //_camera.cullingMask = candidateLayerMask;
     }
 
     public int CalculateScore()
@@ -79,7 +84,8 @@ public class CameraManager : Singleton<CameraManager>
         //double t = Time.realtimeSinceStartupAsDouble;
 
         sc = TakeScreenshot(sc);
-        colorDifferenceSum = Vector3.zero;
+        //colorDifferenceSum = Vector3.zero;
+        colorDifferenceSum = 0;
 
         screenshotolors = sc.GetPixels();
 
@@ -87,10 +93,11 @@ public class CameraManager : Singleton<CameraManager>
         for (int i = index_offset; i < targetColors.Length; i += precision)
         {
             difference = StaticUtilites.VectorAbs(targetColors[i] - (Vector4)screenshotolors[i]);
-            colorDifferenceSum += difference;
+            colorDifferenceSum += StaticUtilites.VectorMax(difference);
+            //colorDifferenceSum += difference;
         }
 
-        return (int)(StaticUtilites.VectorMax(colorDifferenceSum) * 256);
+        return (int)(colorDifferenceSum * 256 * precision);
         //colorDifferenceSum *= 256;
         //return (int)(colorDifferenceSum.x + colorDifferenceSum.y + colorDifferenceSum.z);
     }
@@ -100,8 +107,8 @@ public class CameraManager : Singleton<CameraManager>
         if(shape.score > -1)
             return shape.score;
 
-        shape.gameObject.SetActive(true);
-
+        #region get screenshot colors
+        shape.sprite.enabled = true;
         if ( shape.colorMode == ShapeColorMode.AverageColorFromTexture && 
              ShapeManager.Instance.AverageColorMask && 
             (ShapeManager.Instance.ApplyAverageToVariants || !shape.hasSetColor))
@@ -116,18 +123,19 @@ public class CameraManager : Singleton<CameraManager>
             sc = TakeScreenshot(sc);
             screenshotolors = sc.GetPixels();
         }
+        #endregion
 
-        colorDifferenceSum = Vector3.zero;
-        for (int i = index_offset; i < targetColors.Length; i+= precision)
+        colorDifferenceSum = 0;
+        for (int i = index_offset; i < targetColors.Length; i += precision)
         {
             difference = StaticUtilites.VectorAbs(targetColors[i] - (Vector4)screenshotolors[i]);
-            colorDifferenceSum += difference;
+            colorDifferenceSum += StaticUtilites.VectorMax(difference);
+            //colorDifferenceSum += difference;
         }
 
-        int score = (int)(StaticUtilites.VectorMax(colorDifferenceSum) * 256);
+        int score = (int)(colorDifferenceSum * 256 * precision);
         shape.score = score;
-        shape.gameObject.SetActive(false);
-
+        shape.sprite.enabled = false;
         return score;
     }
 
@@ -244,54 +252,6 @@ public class CameraManager : Singleton<CameraManager>
     }
 
     #region obsolete
-
-
-    [System.Obsolete]
-    public int CalculateScore_OLD()
-    {
-        double t = Time.realtimeSinceStartupAsDouble;
-
-        sc = TakeScreenshot(sc);
-        colorDifferenceSum = Vector3.zero;
-
-        Debug.Log("screenshot: " + (Time.realtimeSinceStartupAsDouble - t));
-        t = Time.realtimeSinceStartupAsDouble;
-
-        for (int x = 0; x < CandidateManager.x_slices; x++)
-        {
-            for (int y = 0; y < CandidateManager.y_slices; y++)
-            {
-                float x_pct = (((float)x + (float)t) / CandidateManager.x_slices) % 1;
-                float y_pct = (((float)y + (float)t) / CandidateManager.y_slices) % 1;
-
-                //DrawVector2.Point(x_pct * CameraManager.CameraWidthWorldSpace, y_pct * CameraManager.CameraHeightWorldSpace, 1);
-
-                targetColor = StaticUtilites.GetPixelFromTexture(EvolutionManager.Instance.TextureToSimulate, x_pct, y_pct); // todo: cache pixels and create static util function so you dont need to getpixelfromtexture every time
-                //currentColor = StaticUtilites.GetPixelFromTexture(currentState, x_pct, y_pct);
-                newColor = StaticUtilites.GetPixelFromTexture(sc, x_pct, y_pct);
-
-                //sum += Vector3.Distance(targetColor, newColor);
-
-                Vector3 difference = targetColor - newColor;
-                difference = StaticUtilites.VectorAbs(difference);
-
-                colorDifferenceSum += difference;
-            }
-        }
-
-        Debug.Log(Time.realtimeSinceStartupAsDouble - t);
-        t = Time.realtimeSinceStartupAsDouble;
-
-        Color[] colorstest = sc.GetPixels();
-        Debug.Log(colorstest.Length);
-        Debug.Log("getpixels" + (Time.realtimeSinceStartupAsDouble - t));
-
-
-
-        colorDifferenceSum *= 256;
-
-        return (int)(colorDifferenceSum.x + colorDifferenceSum.y + colorDifferenceSum.z);
-    }
 
     [System.Obsolete]
     void SetRandomBackgroundColor()

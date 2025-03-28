@@ -87,7 +87,7 @@ public static class StaticUtilites
         //if(RenderTexture.active != inputRenderTexture)
         //    RenderTexture.active = inputRenderTexture;
 
-        Texture2D texture2D = new Texture2D(inputRenderTexture.width, inputRenderTexture.height, TextureFormat.RGBA32, false);
+        Texture2D texture2D = new Texture2D(inputRenderTexture.width, inputRenderTexture.height, TextureFormat.RGB24, false);
 
         return TakeScreenshot(inputRenderTexture, texture2D);
 
@@ -127,7 +127,32 @@ public static class StaticUtilites
         RenderTexture.active = rt;
         Graphics.Blit(source, rt);
 
-        Texture2D result = new Texture2D(width, height, TextureFormat.RGBA32, false);
+        Texture2D result = new Texture2D(width, height, source.format, false);
+        result.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+        result.Apply();
+
+        RenderTexture.active = null;
+        rt.Release();
+
+        result = ResizeTextureHeight(result, maxWidth);
+
+        return result;
+    }
+
+    public static Texture2D ResizeTextureHeight(Texture2D source, int maxHeight = 128)
+    {
+        if (source == null || maxHeight <= 0)
+            return null;
+
+        int height = Mathf.Min(maxHeight, source.height);
+        float aspectRatio = (float)source.width / source.height;
+        int width = Mathf.RoundToInt(height * aspectRatio);
+
+        RenderTexture rt = new RenderTexture(width, height, 24);
+        RenderTexture.active = rt;
+        Graphics.Blit(source, rt);
+
+        Texture2D result = new Texture2D(width, height, source.format, false);
         result.ReadPixels(new Rect(0, 0, width, height), 0, 0);
         result.Apply();
 

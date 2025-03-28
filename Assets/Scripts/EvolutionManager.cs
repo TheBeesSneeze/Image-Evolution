@@ -18,7 +18,7 @@ public class EvolutionManager : Singleton<EvolutionManager>
     // Start is called before the first frame update
     void Start()
     {
-        TextureToSimulate = StaticUtilites.ResizeTexture(TextureToSimulate, 64);
+        TextureToSimulate = StaticUtilites.ResizeTexture(TextureToSimulate, CameraManager.Instance.resolution);
 
         InitialRefreshDelay();
     }

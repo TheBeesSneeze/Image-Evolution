@@ -141,7 +141,7 @@ public class ShapeManager : Singleton<ShapeManager>
                 
                 OnShapeFailed.Invoke();
 
-                if (!UseRejectedShapes || (!AllRejectedShapes && shapes[0].score-currentScore > 300))
+                if (!UseRejectedShapes || (!AllRejectedShapes && shapes[0].score-currentScore > 1500))
                 {
                     Debug.LogError("shape with score " + shapes[0].score + " force rejected (current score: "+currentScore+")");
                     Debug.LogError(shapes[0].score - currentScore);
@@ -162,7 +162,7 @@ public class ShapeManager : Singleton<ShapeManager>
         Shape winner = shapes[0];
 
         if(winner != null)
-           winner.gameObject.SetActive(true);
+            winner.sprite.enabled = true;
         winner.sprite.sortingOrder = shapesCreated + 1;
 
         ShapePoolManager.Instance.EjectShapeFromPool(winner);
@@ -217,7 +217,7 @@ public class ShapeManager : Singleton<ShapeManager>
             Shape newShape = CreateNewRandomShape();
 
             shapes.Add(newShape);
-            newShape.gameObject.SetActive(false);
+            newShape.sprite.enabled = false;
         }
     }
 
@@ -228,7 +228,7 @@ public class ShapeManager : Singleton<ShapeManager>
             Shape newShape = CreateNewRandomShape();
 
             shapes.Add(newShape);
-            newShape.gameObject.SetActive(false);
+            newShape.sprite.enabled = false;
         }
     }
 
@@ -245,7 +245,7 @@ public class ShapeManager : Singleton<ShapeManager>
             {
                 Shape variant = CreateNewShapeVariant(shapes[i], scalar);
                 newShapes.Add(variant);
-                variant.gameObject.SetActive(false);
+                variant.sprite.enabled = false;
             }
         }
 
@@ -425,7 +425,7 @@ public class ShapeManager : Singleton<ShapeManager>
         Random_TweakShape(newShape, scalar);
         newShape.variantLevel = shape.variantLevel + 1;
 
-        shape.gameObject.SetActive(false);
+        shape.sprite.enabled = false;
 
         return newShape;
     }
