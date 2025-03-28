@@ -26,7 +26,7 @@ public class CameraManager : Singleton<CameraManager>
     [SerializeField] [Layer] public int candidateLayer;
 
     [SerializeField]
-    private LayerMask currentStateLayerMask, candidateLayerMask;
+    private LayerMask currentStateLayerMask, candidateLayerMask, everythingLayerMask;
 
     private Texture2D sc;
     private Vector3 colorDifferenceSum;
@@ -47,6 +47,12 @@ public class CameraManager : Singleton<CameraManager>
         _camera = GetComponent<Camera>();
 
         currentState = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGBA32, false);
+
+        if (!ShapeManager.Instance.AverageColorMask)
+        { 
+            _camera.cullingMask = everythingLayerMask;
+            _camera.backgroundColor = bg_color;
+        }
 
         EvolutionManager.Instance.OnRefreshImage.AddListener(UpdateBackgroundColors);
         EvolutionManager.Instance.OnRefreshImage.AddListener(UpdateSizeToMatchImage);
@@ -96,12 +102,17 @@ public class CameraManager : Singleton<CameraManager>
 
         shape.gameObject.SetActive(true);
 
-        if (ShapeManager.Instance.AverageColorMask && (ShapeManager.Instance.ApplyAverageToVariants || !shape.hasSetColor))
+        if ( shape.colorMode == ShapeColorMode.AverageColorFromTexture && 
+             ShapeManager.Instance.AverageColorMask && 
+            (ShapeManager.Instance.ApplyAverageToVariants || !shape.hasSetColor))
         {
             screenshotolors = GetShapeColorsAsAverageFromTarget(shape);
         }
         else
         {
+            _camera.cullingMask = everythingLayerMask;
+            _camera.backgroundColor = bg_color;
+            
             sc = TakeScreenshot(sc);
             screenshotolors = sc.GetPixels();
         }
@@ -148,7 +159,9 @@ public class CameraManager : Singleton<CameraManager>
 
         float currentOpacity = currentShape.a;
         currentShape.sprite.color = Color.white;
+        Debug.Log(currentShape.sprite.color);
         _camera.backgroundColor = Color.clear;
+        _camera.cullingMask = candidateLayerMask;
 
         sc = TakeScreenshot(sc);
         screenshotolors = sc.GetPixels();

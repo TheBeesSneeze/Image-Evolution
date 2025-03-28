@@ -234,6 +234,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   accuracy_text: {fileID: 0}
+  cameraController: {fileID: 0}
+  shapeController: {fileID: 0}
   Accuracy: 0
 --- !u!114 &52524865
 MonoBehaviour:
@@ -260,6 +262,9 @@ MonoBehaviour:
   candidateLayerMask:
     serializedVersion: 2
     m_Bits: 64
+  everythingLayerMask:
+    serializedVersion: 2
+    m_Bits: 192
 --- !u!1 &53914131
 GameObject:
   m_ObjectHideFlags: 0
@@ -2215,7 +2220,6 @@ MonoBehaviour:
   PercentOfShapesToTweak: 0.5
   _x_slices: 40
   _y_slices: 40
-  Candidates: []
 --- !u!1 &1863721464
 GameObject:
   m_ObjectHideFlags: 0
@@ -2333,11 +2337,11 @@ MonoBehaviour:
   UseRejectedShapes: 1
   AllRejectedShapes: 1
   baseGenerations: 10
-  generationsToForceStop: 20
+  generationsToForceStop: 25
   initalRandomShapes: 25
   randomShapesIfShapesAreBad: 5
   shapeVariants: 7
-  shapeVariantsIfShapesAreGood: 12
+  shapeVariantsIfShapesAreGood: 15
   maxShapes: 14
   ContinueIteratingIfShapeIsBest: 1
   MaxShapeSize: 5
@@ -2346,7 +2350,7 @@ MonoBehaviour:
   SmallShapesSizePreference: 4
   minAlpha: 0.25
   maxAlpha: 1.25
-  AverageColorMask: 1
+  AverageColorMask: 0
   ApplyAverageToVariants: 1
   FullyRandomColor: 0
   AnyRandomColorFromImage: 1

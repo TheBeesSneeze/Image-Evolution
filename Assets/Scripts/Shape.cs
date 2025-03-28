@@ -11,17 +11,34 @@ public class Shape : MonoBehaviour
     [ReadOnly]
     public bool inUse; // to be used by shapemanager
 
+    [ReadOnly] public ShapeColorMode colorMode;
+
     [HideInInspector] public SpriteRenderer sprite;
     private bool hasSetPosition = false;
     [HideInInspector] public bool hasSetColor = false;
     [HideInInspector] public int variantLevel;
-
     public float a => sprite.color.a;
+
+    //calculation variables
+    static int colorModeIndex;
+    static int possibleColorModesCount; /* TODO: move to shape manager */
+
+
+    private void Start()
+    {
+        if(possibleColorModesCount <=0 )
+            possibleColorModesCount = System.Enum.GetValues(typeof(ShapeColorMode)).Length;
+    }
 
     public void Initialize()
     {
         sprite = GetComponent<SpriteRenderer>();
         score = -1;
+        colorModeIndex = (colorModeIndex + 1) % /*possibleColorModesCount*/ 2;
+        colorMode = (ShapeColorMode) (colorModeIndex);
+
+        if(ShapeManager.Instance.AverageColorMask)
+            colorMode = ShapeColorMode.RandomColorByPosition;
         //hasSetColor = false;
         //sprite.color = Color.white;
     }
@@ -33,7 +50,7 @@ public class Shape : MonoBehaviour
     public void OnRemoveFromPool()
     {
         variantLevel = 0;
-        sprite.color = Color.white;
+        //sprite.color = Color.white;
         hasSetColor = false;
     }
 
@@ -54,6 +71,7 @@ public class Shape : MonoBehaviour
 
         hasSetColor = other.hasSetColor;
         score = other.score;
+        colorMode = other.colorMode;
 
         if (copyLayer)
             gameObject.layer = other.gameObject.layer;
@@ -61,6 +79,9 @@ public class Shape : MonoBehaviour
 
     public void SetColor(Color color)
     {
+        if (colorMode != ShapeColorMode.AverageColorFromTexture)
+            Debug.LogWarning("warning");
+
         color.a = sprite.color.a;
         sprite.color = color;
         hasSetColor = true;
@@ -112,9 +133,6 @@ public class Shape : MonoBehaviour
 
     public void RandomColorGenerationMethod(float intensityScalar = 1)
     {
-        if(!hasSetColor && ShapeManager.Instance.AverageColorMask)
-            Debug.LogWarning("color not initially set! oh no");
-
         if (StaticUtilites.ChanceFraction(1,3))
         {
             RandomizeColorCompletely(intensityScalar, true);
@@ -124,17 +142,21 @@ public class Shape : MonoBehaviour
             SetColor(intensityScalar, StaticUtilites.CoinFlip());
         }
 
-        if (intensityScalar >= 1)
-            hasSetColor = true;
     }
 
     //[System.Obsolete]
     public void RandomizeColorCompletely(float intensityScalar = 1, bool useColorFromTexture = true)
     {
+        if (colorMode == ShapeColorMode.AverageColorFromTexture)
+            Debug.LogWarning("this is supposed to average");
+
         if (!hasSetColor && ShapeManager.Instance.AverageColorMask)
             Debug.LogWarning("color not initially set! oh no");
 
         score = -1;
+
+        if (intensityScalar >= 1)
+            hasSetColor = true;
 
         Color current = sprite.color;
         Color random;
@@ -152,6 +174,12 @@ public class Shape : MonoBehaviour
 
     public void SetColor(float intensityScalar = 1, bool randomizeALittle = false)
     {
+        if (colorMode == ShapeColorMode.AverageColorFromTexture)
+            Debug.LogWarning("this is supposed to average");
+
+        if (intensityScalar >= 1)
+            hasSetColor = true;
+
         if (!hasSetColor && ShapeManager.Instance.AverageColorMask)
             Debug.LogWarning("color not initially set! oh no");
 

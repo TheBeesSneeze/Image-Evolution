@@ -39,9 +39,9 @@ public class ShapeManager : Singleton<ShapeManager>
     public bool AverageColorMask = true;
     [ShowIf("AverageColorMask")]
     public bool ApplyAverageToVariants = true;
-    [HideIf("AverageColorMask")]
+    //[HideIf("AverageColorMask")]
     public bool FullyRandomColor = true;
-    [HideIf(EConditionOperator.Or, "AverageColorMask", "FullyRandomColor")]
+    //[HideIf(EConditionOperator.Or, "AverageColorMask", "FullyRandomColor")]
     public bool AnyRandomColorFromImage=true;
 
     [Header("Other")]
@@ -62,7 +62,6 @@ public class ShapeManager : Singleton<ShapeManager>
     public List<Shape> shapes = new List<Shape>();
     public TMP_Text debug_text;
 
-    private CandidateController candidateController;
     private int bestScore = -1;
     private int currentScore = -1;
     private int shapesCreated = 0;
@@ -98,7 +97,8 @@ public class ShapeManager : Singleton<ShapeManager>
     {
         while (true)
         {
-            Destroy(NaturallySelectNewShape());
+            //Destroy(NaturallySelectNewShape());
+            NaturallySelectNewShape();
 
             yield return null;
         }
@@ -119,24 +119,13 @@ public class ShapeManager : Singleton<ShapeManager>
 
         bool foundShapeThatImprovesCurrentScore = false;
 
-        bool debug_hadtoaddmoreshapes = false;
-
         int i=0;
         while (i<baseGenerations || !foundShapeThatImprovesCurrentScore || 
             (ContinueIteratingIfShapeIsBest && shapes[0].score < bestScore))
         {
             i++;
             // ok clearly what we have isnt working
-            if (shapes[0].score >= currentScore && i >= baseGenerations)
-            {
-                debug_hadtoaddmoreshapes = true;
-
-                //ScoreAllShapes(); // sets the color of all shapes :/ (weird function, but NEEDED for optimization)
-                PopulateNRandomShapes(randomShapesIfShapesAreBad);
-                ScoreAllShapes();
-                ShapeSort(0, shapes.Count - 1);
-                EliminateAllButNShapes(maxShapes);
-            }
+            ConsiderAddingMoreShapes(i);
 
             ScoreAllShapes();
 
@@ -174,6 +163,7 @@ public class ShapeManager : Singleton<ShapeManager>
 
         if(winner != null)
            winner.gameObject.SetActive(true);
+        winner.sprite.sortingOrder = shapesCreated + 1;
 
         ShapePoolManager.Instance.EjectShapeFromPool(winner);
         ShapePoolManager.Instance.RemoveAllShapes();
@@ -200,13 +190,23 @@ public class ShapeManager : Singleton<ShapeManager>
             bestScore = winner.score;
         currentScore = winner.score;
 
-        if (debug_hadtoaddmoreshapes)
-            Debug.LogWarning("Shapes were bad so more were added");
-
         Debug.Log("Stopped after " + i + " generations");
         Debug.Log("Shape variant level: " + winner.variantLevel);
+        Debug.Log("Shape color type: " + winner.colorMode.ToString());
 
         return winner;
+    }
+
+    private void ConsiderAddingMoreShapes(int generation)
+    {
+        if (shapes[0].score >= currentScore /*&& generation < baseGenerations*/)
+        {
+            //ScoreAllShapes(); // sets the color of all shapes :/ (weird function, but NEEDED for optimization)
+            PopulateNRandomShapes(randomShapesIfShapesAreBad);
+            ScoreAllShapes();
+            ShapeSort(0, shapes.Count - 1);
+            EliminateAllButNShapes(maxShapes);
+        }
     }
 
     [Button]
@@ -262,7 +262,7 @@ public class ShapeManager : Singleton<ShapeManager>
         {
             CameraManager.Instance.CalculateScore(shapes[i]);
         }
-        Debug.Log((Time.unscaledTime - t) + " seconds to score " + shapes.Count + " shapes");
+        //Debug.Log((Time.unscaledTime - t) + " seconds to score " + shapes.Count + " shapes");
     }
 
     
@@ -379,7 +379,7 @@ public class ShapeManager : Singleton<ShapeManager>
         shape.RandomizeRotation();
         shape.RandomizePosition();
         // color is set when score is set
-        if (!AverageColorMask)
+        if (shape.colorMode == ShapeColorMode.RandomColorByPosition || !AverageColorMask)
         {
             if (FullyRandomColor)
                 shape.RandomizeColorCompletely(1, false);
@@ -405,7 +405,7 @@ public class ShapeManager : Singleton<ShapeManager>
         shape.RandomizeScale(scalar);
         if(randomizeZOrder)
             shape.RandomizeZOrder(scalar);
-        if(!ApplyAverageToVariants)
+        if(shape.colorMode == ShapeColorMode.RandomColorByPosition || !ApplyAverageToVariants)
         {
             if (FullyRandomColor)
                 shape.RandomizeColorCompletely(scalar, false);
@@ -462,8 +462,8 @@ public class ShapeManager : Singleton<ShapeManager>
 [System.Obsolete]
     public void RandomlyTweakNShapes(int n)
     {
-        float scalar = 1 - candidateController.Accuracy;
-
+        //float scalar = 1 - candidateController.Accuracy;
+        float scalar = 0.1f;
         for (int i = 0; i < n; i++)
         {
             shapeTweakIndex = (shapeTweakIndex + 1) % shapes.Count;
@@ -482,42 +482,6 @@ public class ShapeManager : Singleton<ShapeManager>
         if (StaticUtilites.CoinFlip()) shape.RandomizeOpacity(scalar);
         if (StaticUtilites.CoinFlip()) shape.RandomizeScale(scalar);
         if (StaticUtilites.CoinFlip()) shape.RandomizeZOrder(scalar);
-    }
-
-    
-
-
-    
-
-    #region obselete
-
-    [System.Obsolete]
-    public void RandomlyTweakAllShapes()
-    {
-        float scalar = 1 - candidateController.Accuracy;
-        scalar = 0.1f;
-        float oldAccuracy;
-        for (int i = 0; i < shapes.Count; i++)
-        {
-            oldAccuracy = candidateController.Accuracy;
-
-            Shape shape = shapes[i];
-            /*
-            if (CreateNewShapeVariant(shape, scalar, out Shape newShape))
-            {
-                Debug.Log("tweak shape good");
-
-                ShapePoolManager.Instance.RemoveShape(shape);
-                shapes[i] = newShape;
-            }
-            else
-            {
-                ShapePoolManager.Instance.RemoveShape(shapes);
-            }
-            */
-            candidateController.Accuracy = oldAccuracy;
-
-        }
     }
 
     [System.Obsolete]
@@ -549,14 +513,12 @@ public class ShapeManager : Singleton<ShapeManager>
         }
     }
 
-    #endregion
-
     #region debug
     [Button]
     public void Force_RandomlyTweakAllShapes_DEBUG()
     {
-        float scalar = 1 - candidateController.Accuracy;
-        scalar = 0.1f;
+        //float scalar = 1 - candidateController.Accuracy;
+        float scalar = 0.1f;
         for (int i = 0; i < shapes.Count; i++)
         {
 

@@ -10,9 +10,6 @@ public class CandidateManager : Singleton<CandidateManager>
     [SerializeField] private int _x_slices = 10;
     [SerializeField] private int _y_slices = 10;
 
-    [Header("Unity friends")]
-    public List<CandidateController> Candidates;
-
     public static float x_slices => (int)Instance._x_slices;
     public static float y_slices => (int)Instance._y_slices;
 
@@ -39,19 +36,6 @@ public class CandidateManager : Singleton<CandidateManager>
         halfwidth = halfheight * _cameraManager.GetComponent<Camera>().aspect;
         x_gap = halfwidth * 2 / ((float)_x_slices);
         y_gap = halfheight * 2 / (float)_y_slices;
-    }
-
-    // Evolution Manager
-    public void Tick()
-    {
-        foreach (CandidateController c in Candidates)
-        {
-            c.Tick();
-
-
-        }
-
-        
     }
 
     private void OnDrawGizmosSelected()

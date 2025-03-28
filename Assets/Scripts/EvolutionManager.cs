@@ -37,8 +37,6 @@ public class EvolutionManager : Singleton<EvolutionManager>
         if (!started)
             return;
 
-        // updates shapes and calculates their accuracies
-        CandidateManager.Instance.Tick();
     }
 
     [Obsolete]
