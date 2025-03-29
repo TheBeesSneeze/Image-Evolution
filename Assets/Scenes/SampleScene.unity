@@ -2329,14 +2329,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   scalar: 0.15
-  UseRejectedShapes: 1
+  UseRejectedShapes: 0
   AllRejectedShapes: 1
+  IncreaseStandardsIfBadShapes: 1
   baseGenerations: 12
   generationsToForceStop: 16
   initalRandomShapes: 25
-  randomShapesIfShapesAreBad: 5
+  randomShapesIfBadShapes: 10
   shapeVariants: 7
-  shapeVariantsIfShapesAreGood: 15
+  shapeVariantsIfGoodShapes: 5
   maxShapes: 14
   ContinueIteratingIfShapeIsBest: 1
   MaxShapeSize: 5
