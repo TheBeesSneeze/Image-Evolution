@@ -14,14 +14,15 @@ public class ShapeManager : Singleton<ShapeManager>
     [SerializeField] private bool UseRejectedShapes = true;
     [ShowIf("UseRejectedShapes")]
     [SerializeField] private bool AllRejectedShapes = true;
+    [SerializeField] private bool IncreaseStandardsIfBadShapes = true;
 
     [Header("Iterations")]
     [SerializeField] private int baseGenerations = 10;
     [SerializeField] private int generationsToForceStop = 100;
     [SerializeField] public int initalRandomShapes = 100;
-    [SerializeField] public int randomShapesIfShapesAreBad = 10;
+    [SerializeField] public int randomShapesIfBadShapes = 10;
     [SerializeField] private int shapeVariants = 5;
-    [SerializeField] private int shapeVariantsIfShapesAreGood = 5;
+    [SerializeField] private int shapeVariantsIfGoodShapes = 5;
     [SerializeField] private int maxShapes=15;
     [SerializeField] private bool ContinueIteratingIfShapeIsBest=true;
 
@@ -78,7 +79,6 @@ public class ShapeManager : Singleton<ShapeManager>
         DebugHSDFGds();
     }
 
-
     async void DebugHSDFGds()
     {
         await Task.Delay(3500);
@@ -90,10 +90,10 @@ public class ShapeManager : Singleton<ShapeManager>
         debug_text.text = bestScore.ToString();
 
         //NaturallySelectNewShape();
-        StartCoroutine(KeepMakingShapes());
+        StartCoroutine(KeepMakingShapesForever());
     }
 
-    private IEnumerator KeepMakingShapes()
+    private IEnumerator KeepMakingShapesForever()
     {
         while (true)
         {
@@ -140,8 +140,10 @@ public class ShapeManager : Singleton<ShapeManager>
                     break;
                 
                 OnShapeFailed.Invoke();
+                if (IncreaseStandardsIfBadShapes)
+                    IncreaseStandards();
 
-                if (!UseRejectedShapes || (!AllRejectedShapes && shapes[0].score-currentScore > 1500))
+                if (!UseRejectedShapes || (!AllRejectedShapes && shapes[0].score-currentScore > 15000))
                 {
                     Debug.LogError("shape with score " + shapes[0].score + " force rejected (current score: "+currentScore+")");
                     Debug.LogError(shapes[0].score - currentScore);
@@ -202,11 +204,22 @@ public class ShapeManager : Singleton<ShapeManager>
         if (shapes[0].score >= currentScore /*&& generation < baseGenerations*/)
         {
             //ScoreAllShapes(); // sets the color of all shapes :/ (weird function, but NEEDED for optimization)
-            PopulateNRandomShapes(randomShapesIfShapesAreBad);
+            PopulateNRandomShapes(randomShapesIfBadShapes);
             ScoreAllShapes();
             ShapeSort(0, shapes.Count - 1);
             EliminateAllButNShapes(maxShapes);
         }
+    }
+
+    private void IncreaseStandards()
+    {
+        baseGenerations++;
+        generationsToForceStop++;
+        initalRandomShapes++;
+        randomShapesIfBadShapes++;
+        shapeVariants++;
+        shapeVariantsIfGoodShapes++;
+        maxShapes++;
     }
 
     [Button]
@@ -237,7 +250,7 @@ public class ShapeManager : Singleton<ShapeManager>
     {
         List<Shape> newShapes = new List<Shape>();
 
-        int variantsToCreate = shapes[0].score < currentScore ? shapeVariantsIfShapesAreGood : shapeVariants;
+        int variantsToCreate = shapes[0].score < currentScore ? shapeVariantsIfGoodShapes : shapeVariants;
 
         for ( int i = 0; i < shapes.Count; i++ )
         {

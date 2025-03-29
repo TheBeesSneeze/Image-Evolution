@@ -246,6 +246,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   resolution: 128
+  precision: 4
   _camera: {fileID: 0}
   currentState: {fileID: 0}
   currentStateColors: []
@@ -510,7 +511,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7af88db29df7906408ec50a5bd40e694, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TextureToSimulate: {fileID: 2800000, guid: f63c0e9fe0d6d0741875e5c677b21e74, type: 3}
+  TextureToSimulate: {fileID: 2800000, guid: 4f878ef2b95254349888739c24c4b251, type: 3}
   OnRefreshImage:
     m_PersistentCalls:
       m_Calls: []
@@ -2214,9 +2215,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0899f2835bcb5944b60eef4097969fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  PercentOfShapesToTweak: 0.5
-  _x_slices: 40
-  _y_slices: 40
 --- !u!1 &1863721464
 GameObject:
   m_ObjectHideFlags: 0
@@ -2333,8 +2331,8 @@ MonoBehaviour:
   scalar: 0.15
   UseRejectedShapes: 1
   AllRejectedShapes: 1
-  baseGenerations: 10
-  generationsToForceStop: 15
+  baseGenerations: 12
+  generationsToForceStop: 16
   initalRandomShapes: 25
   randomShapesIfShapesAreBad: 5
   shapeVariants: 7
@@ -2347,7 +2345,7 @@ MonoBehaviour:
   SmallShapesSizePreference: 4
   minAlpha: 0.25
   maxAlpha: 1.25
-  AverageColorMask: 0
+  AverageColorMask: 1
   ApplyAverageToVariants: 1
   FullyRandomColor: 0
   AnyRandomColorFromImage: 1

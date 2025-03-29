@@ -8,8 +8,8 @@ using UnityEngine.UI;
 public class CameraManager : Singleton<CameraManager>
 {
     [Header("Settings")]
-    public int resolution = 128;
-    [SerializeField] private int precision = 4;
+    public int resolution = 96;
+    [SerializeField] private int precision = 2;
 
 
     public static float CameraHeightWorldSpace => Instance._camera.orthographicSize * 2;
@@ -35,7 +35,7 @@ public class CameraManager : Singleton<CameraManager>
 
     private Texture2D sc;
     //private Vector3 colorDifferenceSum;
-    private float colorDifferenceSum;
+    private int colorDifferenceSum;
     private Vector3 targetColor,currentColor,newColor;
     private Vector3 difference,newColorDifference;
 
@@ -93,11 +93,12 @@ public class CameraManager : Singleton<CameraManager>
         for (int i = index_offset; i < targetColors.Length; i += precision)
         {
             difference = StaticUtilites.VectorAbs(targetColors[i] - (Vector4)screenshotolors[i]);
-            colorDifferenceSum += StaticUtilites.VectorMax(difference);
-            //colorDifferenceSum += difference;
+            int worstColor = (int)(StaticUtilites.VectorMax(difference) * 256);
+            worstColor *= worstColor; // square it >:)
+            colorDifferenceSum += worstColor;
         }
 
-        return (int)(colorDifferenceSum * 256 * precision);
+        return colorDifferenceSum * precision;
         //colorDifferenceSum *= 256;
         //return (int)(colorDifferenceSum.x + colorDifferenceSum.y + colorDifferenceSum.z);
     }
@@ -129,11 +130,12 @@ public class CameraManager : Singleton<CameraManager>
         for (int i = index_offset; i < targetColors.Length; i += precision)
         {
             difference = StaticUtilites.VectorAbs(targetColors[i] - (Vector4)screenshotolors[i]);
-            colorDifferenceSum += StaticUtilites.VectorMax(difference);
-            //colorDifferenceSum += difference;
+            int worstColor = (int)(StaticUtilites.VectorMax(difference) * 256);
+            worstColor *= worstColor; // square it >:)
+            colorDifferenceSum += worstColor;
         }
 
-        int score = (int)(colorDifferenceSum * 256 * precision);
+        int score = colorDifferenceSum * precision;
         shape.score = score;
         shape.sprite.enabled = false;
         return score;
@@ -167,7 +169,7 @@ public class CameraManager : Singleton<CameraManager>
 
         float currentOpacity = currentShape.a;
         currentShape.sprite.color = Color.white;
-        Debug.Log(currentShape.sprite.color);
+        //Debug.Log(currentShape.sprite.color);
         _camera.backgroundColor = Color.clear;
         _camera.cullingMask = candidateLayerMask;
 
@@ -182,11 +184,21 @@ public class CameraManager : Singleton<CameraManager>
 
         Vector4 sum = Vector4.zero;
         float count = 0;
+        Vector2Int topLeftIndex = new Vector2Int(sc.width, sc.height); /* new optimization: make this a function, do a big binary-esc search */
+        Vector2Int bottomRightIndex = new Vector2Int(0,0);
+
         //find when screenshot is different from current
         for (int i = index_offset; i < screenshotolors.Length; i+=precision)
         {
             if (screenshotolors[i].r > 0)
             {
+                int x = i % sc.width;
+                int y = i / sc.height;
+                topLeftIndex.x = Mathf.Min(topLeftIndex.x, x);
+                topLeftIndex.y = Mathf.Min(topLeftIndex.y, y);
+                bottomRightIndex.x = Mathf.Max(bottomRightIndex.x, x);
+                bottomRightIndex.y = Mathf.Max(bottomRightIndex.y, y);
+
                 sum += targetColors[i] * screenshotolors[i].a;
                 count += screenshotolors[i].a;
             }
@@ -195,12 +207,8 @@ public class CameraManager : Singleton<CameraManager>
         avg_color.a = currentShape.sprite.color.a;
 
         // Apply color with avg 
-        for (int i = index_offset; i < screenshotolors.Length; i+= precision)
+        for (int i = index_offset; i < screenshotolors.Length; i += precision)
         {
-            /*
-             * potential optimization find index of first / last difference in last for loop and use that here
-             */
-
             if (screenshotolors[i].r == 0)
                 screenshotolors[i] = currentStateColors[i];
             else if (currentStateColors[i].r == 1)
@@ -208,6 +216,21 @@ public class CameraManager : Singleton<CameraManager>
             else
                 screenshotolors[i] = Color.Lerp(currentStateColors[i], avg_color, screenshotolors[i].r);
         }
+        /*
+        for(int x = topLeftIndex.x; x < bottomRightIndex.x; x++)
+        {
+            for(int y = topLeftIndex.y; y< bottomRightIndex.y; y++)
+            {
+                int i = y * sc.width + x;
+                if (screenshotolors[i].r == 0)
+                    screenshotolors[i] = currentStateColors[i];
+                else if (currentStateColors[i].r == 1)
+                    screenshotolors[i] = avg_color;
+                else
+                    screenshotolors[i] = Color.Lerp(currentStateColors[i], avg_color, screenshotolors[i].r);
+            }
+        } */
+
 
         avg_color.a = currentOpacity;   
         currentShape.SetColor(avg_color);

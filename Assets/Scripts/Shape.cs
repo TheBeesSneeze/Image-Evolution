@@ -11,7 +11,7 @@ public class Shape : MonoBehaviour
     [ReadOnly]
     public bool inUse; // to be used by shapemanager
 
-    [ReadOnly] public ShapeColorMode colorMode;
+    public ShapeColorMode colorMode;
 
     [HideInInspector] public SpriteRenderer sprite;
     private bool hasSetPosition = false;
@@ -37,7 +37,7 @@ public class Shape : MonoBehaviour
         colorModeIndex = (colorModeIndex + 1) % /*possibleColorModesCount*/ 2;
         colorMode = (ShapeColorMode) (colorModeIndex);
 
-        if(ShapeManager.Instance.AverageColorMask)
+        if(!ShapeManager.Instance.AverageColorMask)
             colorMode = ShapeColorMode.RandomColorByPosition;
         //hasSetColor = false;
         //sprite.color = Color.white;
@@ -149,6 +149,9 @@ public class Shape : MonoBehaviour
     {
         if (colorMode == ShapeColorMode.AverageColorFromTexture)
             Debug.LogWarning("this is supposed to average");
+
+        if(intensityScalar >= 1)
+            hasSetColor = true;
 
         if (!hasSetColor && ShapeManager.Instance.AverageColorMask)
             Debug.LogWarning("color not initially set! oh no");
@@ -270,11 +273,23 @@ public class Shape : MonoBehaviour
     #region debug
 
     [Button]
-    private void CalculateScore()
+    private void CalculateScore_DEBUG()
     {
+        gameObject.layer = 6;
+        hasSetColor = false;
         score = -1;
+        sprite.enabled = false;
+        ShapeManager.OnShapeSelected.Invoke(); // to get current state
+        sprite.enabled = true;
         CameraManager.Instance.CalculateScore(this);
+        sprite.enabled = true;
+        gameObject.layer = 7;
+    }
 
+    private void OnDrawGizmosSelected()
+    {
+        if(colorMode == ShapeColorMode.AverageColorFromTexture)
+            CalculateScore_DEBUG();
     }
 
     #endregion
