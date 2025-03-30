@@ -2303,18 +2303,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b3cb0004c71d1b4e9e81d549455108a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  scalar: 0.25
+  scalar: 0.05
   UseRejectedShapes: 1
   AllRejectedShapes: 1
   IncreaseStandardsIfBadShapes: 1
-  baseGenerations: 8
-  generationsToForceStop: 16
-  initalRandomShapes: 85
-  randomShapesIfBadShapes: 10
+  baseGenerations: 10
+  generationsToForceStop: 12
+  initalRandomShapes: 125
+  randomShapesIfBadShapes: 2
   shapeVariants: 3
   shapeVariantsIfGoodShapes: 9
-  maxShapes: 6
-  ContinueIteratingIfShapeIsBest: 0
+  maxShapes: 8
+  ContinueIteratingIfShapeIsBest: 1
   MaxShapeSize: 5
   MinShapeSize: 0.2
   PreserveAspectRatio: 1
@@ -2327,6 +2327,7 @@ MonoBehaviour:
   AnyRandomColorFromImage: 1
   randomizeZOrder: 0
   MaxZOrder: 100
+  ChanceToChangeSprite: 0.5
   shapeSprites:
   - {fileID: 7482667652216324306, guid: 48e93eef0688c4a259cb0eddcd8661f7, type: 3}
   - {fileID: -2413806693520163455, guid: ebe73ca9363db456bacf42c025bb4847, type: 3}
@@ -2402,6 +2403,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: f8419d6539c589d4fba3aed22ab0e95f, type: 3}
   - {fileID: 21300000, guid: 75d85db3f1854524eb307cc4554596d6, type: 3}
   - {fileID: 21300000, guid: 2635cbc181f7f384a9f958e8304f1897, type: 3}
+  - {fileID: 21300000, guid: 6642f1bb3835cbc45b5cd220058c90d9, type: 3}
   shapes: []
   debug_text: {fileID: 485315450}
 --- !u!4 &2017121615

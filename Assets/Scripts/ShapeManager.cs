@@ -50,7 +50,8 @@ public class ShapeManager : Singleton<ShapeManager>
     [ShowIf("randomizeZOrder")]
     public int MaxZOrder = 100;
 
-    [Header("Shapes")]
+    [Header("Sprites")]
+    public float ChanceToChangeSprite = 0.5f;
     [SerializeField] public List<Sprite> shapeSprites;
 
     public static UnityEvent OnShapeSelected = new UnityEvent();
@@ -59,6 +60,7 @@ public class ShapeManager : Singleton<ShapeManager>
     [HideInInspector] public static Vector2 halfsize;
     [HideInInspector] public static Vector2 scaledHalfSize;
 
+    [Header("Debug")]
     [ReadOnly]
     public List<Shape> shapes = new List<Shape>();
     public TMP_Text debug_text;
@@ -125,10 +127,9 @@ public class ShapeManager : Singleton<ShapeManager>
         {
             i++;
             // ok clearly what we have isnt working
-            ConsiderAddingMoreShapes(i);
+            ConsiderAddingMoreShapes(i); // removes shapes, dont worry
 
             ScoreAllShapes();
-
             CreateShapeVariants();
             ScoreAllShapes(); // idk whats going on. they might be sorted already
             ShapeSort(0, shapes.Count - 1);
@@ -216,13 +217,33 @@ public class ShapeManager : Singleton<ShapeManager>
 
     private void IncreaseStandards()
     {
-        baseGenerations++;
-        generationsToForceStop++;
-        initalRandomShapes++;
-        randomShapesIfBadShapes++;
-        shapeVariants++;
-        shapeVariantsIfGoodShapes++;
-        maxShapes++;
+        int statToIncrease = Random.Range(0, 6);
+
+        switch(statToIncrease)
+        {
+            case 0:
+                baseGenerations++;
+                break;
+            case 1:
+                generationsToForceStop++;
+                break;
+            case 2:
+                initalRandomShapes++;
+                break;
+            case 3:
+                randomShapesIfBadShapes++;
+                break;
+            case 4:
+                shapeVariants++;
+                break;
+            case 5:
+                shapeVariantsIfGoodShapes++;
+                break;
+            case 6:
+                maxShapes++;
+                break;
+        };
+        
     }
 
     [Button]
@@ -416,7 +437,7 @@ public class ShapeManager : Singleton<ShapeManager>
 
     private void Random_TweakShape(Shape shape, float scalar)
     {
-        shape.RandomizeSprite(scalar);
+        shape.RandomizeSprite(ChanceToChangeSprite);
         shape.RandomizeSpriteFlip(scalar);
         shape.RandomizeRotation(scalar);
         shape.RandomizePosition(scalar);
