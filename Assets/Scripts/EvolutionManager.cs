@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
@@ -14,6 +13,15 @@ public class EvolutionManager : Singleton<EvolutionManager>
     // calculation variables
     int bestCandidateIdx;
     bool started = false;
+
+    private static Vector4[] targetColors {
+        get {
+            if(CameraManager.Instance.targetColors != null)
+                return CameraManager.Instance.targetColors; 
+            else
+                return null;
+        }
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -39,24 +47,10 @@ public class EvolutionManager : Singleton<EvolutionManager>
 
     }
 
-    [Obsolete]
-    private int GetBestCandidateIndex()
+    public static Color GetRandomColorFromTargetTexture()
     {
-        /*
-        int bestCandidate = 0;
-        for (int i = 1; i < CandidateManager.Candidates.Count; i++)
-        {
-            CandidateController candidate = CandidateManager.Candidates[i];
-            if (candidate.Accuracy > CandidateManager.Candidates[bestCandidate].Accuracy)
-            {
-                bestCandidate = i;
-            }
-        }
-        return bestCandidate;
-        */
-        return -1;
+        return targetColors[Random.Range(0, targetColors.Length)];
     }
-
     
     
 

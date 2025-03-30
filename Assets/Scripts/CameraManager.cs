@@ -40,7 +40,7 @@ public class CameraManager : Singleton<CameraManager>
     private Vector3 difference,newColorDifference;
 
     // calculation variables
-    private Vector4[] targetColors;
+    [HideInInspector] public Vector4[] targetColors; // move to evolution manager?
     private Color[] screenshotolors;
     private int index_offset = 0;
     private Color bg_color;
@@ -265,6 +265,7 @@ public class CameraManager : Singleton<CameraManager>
     /// </summary>
     private void GetTargetPixelColors()
     {
+        Debug.Log("getting target pixel colors");
         Color[] temp = EvolutionManager.Instance.TextureToSimulate.GetPixels();
         targetColors = new Vector4[temp.Length];
 

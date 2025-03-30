@@ -237,6 +237,7 @@ MonoBehaviour:
   everythingLayerMask:
     serializedVersion: 2
     m_Bits: 192
+  targetColors: []
 --- !u!1 &53914131
 GameObject:
   m_ObjectHideFlags: 0
@@ -2302,20 +2303,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b3cb0004c71d1b4e9e81d549455108a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  scalar: 0.15
+  scalar: 0.25
   UseRejectedShapes: 1
   AllRejectedShapes: 1
-  IncreaseStandardsIfBadShapes: 0
+  IncreaseStandardsIfBadShapes: 1
   baseGenerations: 8
   generationsToForceStop: 16
-  initalRandomShapes: 75
+  initalRandomShapes: 85
   randomShapesIfBadShapes: 10
-  shapeVariants: 7
-  shapeVariantsIfGoodShapes: 5
-  maxShapes: 11
+  shapeVariants: 3
+  shapeVariantsIfGoodShapes: 9
+  maxShapes: 6
   ContinueIteratingIfShapeIsBest: 0
   MaxShapeSize: 5
-  MinShapeSize: 0.1
+  MinShapeSize: 0.2
   PreserveAspectRatio: 1
   SmallShapesSizePreference: 4
   minAlpha: 0.25
@@ -2390,6 +2391,17 @@ MonoBehaviour:
   - {fileID: 21300000, guid: dc709349b81e6df4d8e430a30c084cb0, type: 3}
   - {fileID: 21300000, guid: 5b20e83091171ae419be75bec173a150, type: 3}
   - {fileID: 21300000, guid: 4857657c11d6e3d4cbf175d65e715d16, type: 3}
+  - {fileID: 21300000, guid: 7112e11973733a54dbc78a2d17375016, type: 3}
+  - {fileID: 21300000, guid: 44e07f34c738d004891734b6e5a09695, type: 3}
+  - {fileID: 21300000, guid: 348c87517e6d7d943b0f9088759a18e6, type: 3}
+  - {fileID: 21300000, guid: 7813c3dd8987840489da57136ce8702f, type: 3}
+  - {fileID: 21300000, guid: 7805ed103135d694099543748ed429b3, type: 3}
+  - {fileID: 21300000, guid: 359c8f699b4a861409a0c7f0822649c5, type: 3}
+  - {fileID: 21300000, guid: 42bd299bc212eee48bc86329ca5cf4d0, type: 3}
+  - {fileID: 21300000, guid: f28396c7b98c71a45beaa9ce8d1d86b5, type: 3}
+  - {fileID: 21300000, guid: f8419d6539c589d4fba3aed22ab0e95f, type: 3}
+  - {fileID: 21300000, guid: 75d85db3f1854524eb307cc4554596d6, type: 3}
+  - {fileID: 21300000, guid: 2635cbc181f7f384a9f958e8304f1897, type: 3}
   shapes: []
   debug_text: {fileID: 485315450}
 --- !u!4 &2017121615

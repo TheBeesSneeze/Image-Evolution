@@ -5,6 +5,11 @@ using UnityEngine;
 
 public class Shape : MonoBehaviour
 {
+    /*
+     * BIG TODO: RANDOMIZE FLIPY AND FLIPX
+     */ 
+
+
     [ReadOnly]
     public int score = -1;
 
@@ -99,6 +104,15 @@ public class Shape : MonoBehaviour
         if (intensityScalar >= Random.value) 
             sprite.sprite = ShapeManager.Instance.shapeSprites[Random.Range(0, ShapeManager.Instance.shapeSprites.Count)];
     }
+
+    public void RandomizeSpriteFlip(float intensityScalar=1)
+    {
+        score = -1;
+
+        sprite.flipX = intensityScalar >= Random.value;
+        //sprite.flipY = intensityScalar >= Random.value;
+    }
+
     public void RandomizeRotation(float intensityScalar = 1)
     {
         score = -1;
@@ -166,7 +180,8 @@ public class Shape : MonoBehaviour
 
         if (useColorFromTexture)
         {
-            random = StaticUtilites.GetRandomColorFromTexture(EvolutionManager.Instance.TextureToSimulate);
+            //random = StaticUtilites.GetRandomColorFromTexture(EvolutionManager.Instance.TextureToSimulate);
+            random = EvolutionManager.GetRandomColorFromTargetTexture();
         }
         else
             random = new Color(Random.value, Random.value, Random.value);
@@ -196,7 +211,8 @@ public class Shape : MonoBehaviour
 
         if (hasSetPosition && ShapeManager.Instance.AnyRandomColorFromImage)
         {
-            newColor = StaticUtilites.GetRandomColorFromTexture(EvolutionManager.Instance.TextureToSimulate);
+            //newColor = StaticUtilites.GetRandomColorFromTexture(EvolutionManager.Instance.TextureToSimulate);
+            newColor = EvolutionManager.GetRandomColorFromTargetTexture();
         }
         else
         {

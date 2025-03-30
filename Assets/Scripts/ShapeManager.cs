@@ -97,8 +97,8 @@ public class ShapeManager : Singleton<ShapeManager>
     {
         while (true)
         {
-            //Destroy(NaturallySelectNewShape());
-            NaturallySelectNewShape();
+            Destroy(NaturallySelectNewShape());
+            //NaturallySelectNewShape();
 
             yield return null;
         }
@@ -192,9 +192,12 @@ public class ShapeManager : Singleton<ShapeManager>
             bestScore = winner.score;
         currentScore = winner.score;
 
-        Debug.Log("Stopped after " + i + " generations");
-        Debug.Log("Shape variant level: " + winner.variantLevel);
-        Debug.Log("Shape color type: " + winner.colorMode.ToString());
+
+        winner.gameObject.name = winner.sprite.sprite.name;
+        Debug.Log("Stopped after " + i + " generations...\n" +
+                  "Shape variant level: " + winner.variantLevel + "\n" +
+                  "Shape color type: " + winner.colorMode.ToString() + "\n" +
+                  "Sprite: " + winner.sprite.sprite.name);
 
         return winner;
     }
@@ -250,11 +253,12 @@ public class ShapeManager : Singleton<ShapeManager>
     {
         List<Shape> newShapes = new List<Shape>();
 
-        int variantsToCreate = shapes[0].score < currentScore ? shapeVariantsIfGoodShapes : shapeVariants;
 
         for ( int i = 0; i < shapes.Count; i++ )
         {
-            for(int j = 0; j< variantsToCreate; j++)
+            int variantsToCreate = shapes[i].score < currentScore ? shapeVariantsIfGoodShapes : shapeVariants;
+
+            for (int j = 0; j< variantsToCreate; j++)
             {
                 Shape variant = CreateNewShapeVariant(shapes[i], scalar);
                 newShapes.Add(variant);
@@ -389,6 +393,7 @@ public class ShapeManager : Singleton<ShapeManager>
 
         shape.Initialize();
         shape.RandomizeSprite();
+        shape.RandomizeSpriteFlip();
         shape.RandomizeRotation();
         shape.RandomizePosition();
         // color is set when score is set
@@ -412,6 +417,7 @@ public class ShapeManager : Singleton<ShapeManager>
     private void Random_TweakShape(Shape shape, float scalar)
     {
         shape.RandomizeSprite(scalar);
+        shape.RandomizeSpriteFlip(scalar);
         shape.RandomizeRotation(scalar);
         shape.RandomizePosition(scalar);
         shape.RandomizeOpacity(scalar);
