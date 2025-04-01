@@ -94,7 +94,7 @@ public class CameraManager : Singleton<CameraManager>
         {
             difference = StaticUtilites.VectorAbs(targetColors[i] - (Vector4)screenshotolors[i]);
             int worstColor = (int)(StaticUtilites.VectorMax(difference) * 256);
-            worstColor *= worstColor; // square it >:)
+            //worstColor *= worstColor; // square it >:)
             colorDifferenceSum += worstColor;
         }
 
@@ -131,7 +131,7 @@ public class CameraManager : Singleton<CameraManager>
         {
             difference = StaticUtilites.VectorAbs(targetColors[i] - (Vector4)screenshotolors[i]);
             int worstColor = (int)(StaticUtilites.VectorMax(difference) * 256);
-            worstColor *= worstColor; // square it >:)
+            //worstColor *= worstColor; // square it >:)
             colorDifferenceSum += worstColor;
         }
 

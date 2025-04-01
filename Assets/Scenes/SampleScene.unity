@@ -486,7 +486,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7af88db29df7906408ec50a5bd40e694, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TextureToSimulate: {fileID: 2800000, guid: ab31aef2291f52f42ab5f70de1b87371, type: 3}
+  TextureToSimulate: {fileID: 2800000, guid: 7cfaadf75eb4f89439c5cda141d2640e, type: 3}
   OnRefreshImage:
     m_PersistentCalls:
       m_Calls: []
@@ -651,6 +651,7 @@ GameObject:
   - component: {fileID: 485315449}
   - component: {fileID: 485315451}
   - component: {fileID: 485315450}
+  - component: {fileID: 485315452}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -775,6 +776,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 485315448}
   m_CullTransparentMesh: 1
+--- !u!225 &485315452
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 485315448}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 1
 --- !u!1 &511734828
 GameObject:
   m_ObjectHideFlags: 0
@@ -1283,6 +1296,7 @@ GameObject:
   - component: {fileID: 822079123}
   - component: {fileID: 822079125}
   - component: {fileID: 822079124}
+  - component: {fileID: 822079126}
   m_Layer: 5
   m_Name: RawImage 1 (1)
   m_TagString: Untagged
@@ -1345,6 +1359,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 822079122}
   m_CullTransparentMesh: 1
+--- !u!225 &822079126
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 822079122}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &888880697
 GameObject:
   m_ObjectHideFlags: 0
@@ -1446,6 +1472,7 @@ GameObject:
   - component: {fileID: 936616293}
   - component: {fileID: 936616292}
   - component: {fileID: 936616291}
+  - component: {fileID: 936616294}
   m_Layer: 5
   m_Name: Panel
   m_TagString: Untagged
@@ -1540,6 +1567,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 936616289}
   m_CullTransparentMesh: 1
+--- !u!225 &936616294
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 936616289}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &1261297022
 GameObject:
   m_ObjectHideFlags: 0
@@ -1551,6 +1590,7 @@ GameObject:
   - component: {fileID: 1261297023}
   - component: {fileID: 1261297025}
   - component: {fileID: 1261297024}
+  - component: {fileID: 1261297026}
   m_Layer: 5
   m_Name: RawImage 1 (2)
   m_TagString: Untagged
@@ -1613,6 +1653,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1261297022}
   m_CullTransparentMesh: 1
+--- !u!225 &1261297026
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1261297022}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &1268720487
 GameObject:
   m_ObjectHideFlags: 0
@@ -1775,6 +1827,7 @@ GameObject:
   - component: {fileID: 1359519978}
   - component: {fileID: 1359519980}
   - component: {fileID: 1359519979}
+  - component: {fileID: 1359519981}
   m_Layer: 5
   m_Name: RawImage 1
   m_TagString: Untagged
@@ -1837,6 +1890,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1359519977}
   m_CullTransparentMesh: 1
+--- !u!225 &1359519981
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1359519977}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &1592333201
 GameObject:
   m_ObjectHideFlags: 0
@@ -1951,6 +2016,7 @@ GameObject:
   - component: {fileID: 1705058499}
   - component: {fileID: 1705058498}
   - component: {fileID: 1705058500}
+  - component: {fileID: 1705058501}
   m_Layer: 5
   m_Name: Render Textures Area
   m_TagString: Untagged
@@ -2044,6 +2110,18 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!225 &1705058501
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1705058496}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &1707947684
 GameObject:
   m_ObjectHideFlags: 0
@@ -2303,22 +2381,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b3cb0004c71d1b4e9e81d549455108a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  scalar: 0.05
+  scalar: 0.08
   UseRejectedShapes: 1
   AllRejectedShapes: 1
   IncreaseStandardsIfBadShapes: 1
   baseGenerations: 10
   generationsToForceStop: 12
-  initalRandomShapes: 125
+  initalRandomShapes: 100
   randomShapesIfBadShapes: 2
   shapeVariants: 3
-  shapeVariantsIfGoodShapes: 9
-  maxShapes: 8
-  ContinueIteratingIfShapeIsBest: 1
+  shapeVariantsIfGoodShapes: 8
+  maxShapes: 6
+  ContinueIteratingIfShapeIsBest: 0
   MaxShapeSize: 5
   MinShapeSize: 0.2
   PreserveAspectRatio: 1
-  SmallShapesSizePreference: 4
+  SmallShapesSizePreference: 3
   minAlpha: 0.25
   maxAlpha: 1.25
   AverageColorMask: 0
@@ -2327,7 +2405,7 @@ MonoBehaviour:
   AnyRandomColorFromImage: 1
   randomizeZOrder: 0
   MaxZOrder: 100
-  ChanceToChangeSprite: 0.5
+  ChanceToChangeSprite: 0.2
   shapeSprites:
   - {fileID: 7482667652216324306, guid: 48e93eef0688c4a259cb0eddcd8661f7, type: 3}
   - {fileID: -2413806693520163455, guid: ebe73ca9363db456bacf42c025bb4847, type: 3}
@@ -2434,6 +2512,7 @@ GameObject:
   - component: {fileID: 2069442539}
   - component: {fileID: 2069442538}
   - component: {fileID: 2069442537}
+  - component: {fileID: 2069442542}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -2545,3 +2624,15 @@ MonoBehaviour:
   SucceededShapesText: {fileID: 710676914}
   FailedShapesText: {fileID: 511734831}
   TimeDisplayText: {fileID: 53914132}
+--- !u!225 &2069442542
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2069442536}
+  m_Enabled: 1
+  m_Alpha: 0
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
