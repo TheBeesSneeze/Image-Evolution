@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using UnityEngine.Events;
 using TMPro;
 using System.Reflection;
+using Unity.VisualScripting;
 
 public class ShapeManager : Singleton<ShapeManager>
 {
@@ -109,7 +110,7 @@ public class ShapeManager : Singleton<ShapeManager>
     [Button]
     public Shape NaturallySelectNewShape()
     {
-        if(shapes == null)
+        if(shapes.IsUnityNull())
             shapes = new List<Shape>();
 
         shapes.Clear();
@@ -164,7 +165,7 @@ public class ShapeManager : Singleton<ShapeManager>
 
         Shape winner = shapes[0];
 
-        if(winner != null)
+        if(!winner.IsUnityNull())
             winner.sprite.enabled = true;
         winner.sprite.sortingOrder = shapesCreated + 1;
 

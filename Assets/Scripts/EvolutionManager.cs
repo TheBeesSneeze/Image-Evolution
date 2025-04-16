@@ -14,7 +14,7 @@ public class EvolutionManager : Singleton<EvolutionManager>
     int bestCandidateIdx;
     bool started = false;
 
-    private static Vector4[] targetColors {
+    private static Color32[] targetColors {
         get {
             if(CameraManager.Instance.targetColors != null)
                 return CameraManager.Instance.targetColors; 
@@ -26,7 +26,7 @@ public class EvolutionManager : Singleton<EvolutionManager>
     // Start is called before the first frame update
     void Start()
     {
-        TextureToSimulate = StaticUtilites.ResizeTexture(TextureToSimulate, CameraManager.Instance.resolution);
+        TextureToSimulate = StaticUtilites.ResizeTexture(TextureToSimulate, CameraManager.Instance.resolution, CameraManager.Instance.GenerateMipMaps);
 
         InitialRefreshDelay();
     }

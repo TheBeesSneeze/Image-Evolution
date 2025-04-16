@@ -2,6 +2,7 @@ using NaughtyAttributes;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.SocialPlatforms.Impl;
 using UnityEngine.UI;
@@ -18,8 +19,12 @@ public class CameraManager : Singleton<CameraManager>
     [HideInInspector] public Camera _camera;
     [HideInInspector] public RenderTexture renderTexture => _camera.targetTexture;
 
-    [SerializeField][ReadOnly] private Texture2D currentState;
-    [SerializeField][ReadOnly] private Color[] currentStateColors;
+    public bool GenerateMipMaps = false;
+    [ShowIf("GenerateMipMaps")]
+    public int MipMapLevel = 0;
+
+    private Texture2D currentState;
+    private NativeArray<Color32> currentStateColors;
 
     [Header("Material")]
     [SerializeField] Material differenceMaterial;
@@ -37,21 +42,24 @@ public class CameraManager : Singleton<CameraManager>
     //private Vector3 colorDifferenceSum;
     private int colorDifferenceSum;
     private Vector3 targetColor,currentColor,newColor;
-    private Vector3 difference,newColorDifference;
+    private Vector3 newColorDifference;
 
     // calculation variables
-    [HideInInspector] public Vector4[] targetColors; // move to evolution manager?
-    private Color[] screenshotolors;
+    [HideInInspector] public Color32[] targetColors; // move to evolution manager?
+    private NativeArray<Color32> screenshotolors;
     private int index_offset = 0;
-    private Color bg_color;
+    private Color32 bg_color;
 
 
     // Start is called before the first frame update
     void Start()
     {
+        if (!GenerateMipMaps)
+            MipMapLevel = 0;
+
         _camera = GetComponent<Camera>();
 
-        currentState = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGBA32, false);
+        currentState = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGBA32, GenerateMipMaps);
 
         if (!ShapeManager.Instance.AverageColorMask)
         { 
@@ -75,7 +83,7 @@ public class CameraManager : Singleton<CameraManager>
         _camera.backgroundColor = bg_color;
         _camera.cullingMask = currentStateLayerMask;
         currentState = TakeScreenshot(currentState);
-        currentStateColors = currentState.GetPixels();
+        currentStateColors = currentState.GetPixelData<Color32>(MipMapLevel);
         //_camera.cullingMask = candidateLayerMask;
     }
 
@@ -87,20 +95,23 @@ public class CameraManager : Singleton<CameraManager>
         //colorDifferenceSum = Vector3.zero;
         colorDifferenceSum = 0;
 
-        screenshotolors = sc.GetPixels();
+        screenshotolors = sc.GetPixelData<Color32>(MipMapLevel);
 
-
+        int difference = 0;
         for (int i = index_offset; i < targetColors.Length; i += precision)
         {
-            difference = StaticUtilites.VectorAbs(targetColors[i] - (Vector4)screenshotolors[i]);
-            int worstColor = (int)(StaticUtilites.VectorMax(difference) * 256);
-            //worstColor *= worstColor; // square it >:)
-            colorDifferenceSum += worstColor;
+
+            //difference = StaticUtilites.VectorAbs(targetColors[i] - screenshotolors[i]);
+            //difference += StaticUtilites.ColorDifference(targetColors[i], screenshotolors[i]);
+            int r = Mathf.Abs(targetColors[i].r - screenshotolors[i].r);
+            int g = Mathf.Abs(targetColors[i].g - screenshotolors[i].g);
+            int b = Mathf.Abs(targetColors[i].b - screenshotolors[i].b);
+            difference += Mathf.Max(Mathf.Max(r, g), b);
+            //int worstColor = (int)(StaticUtilites.VectorMax(difference));
+            //colorDifferenceSum += worstColor;
         }
 
-        return colorDifferenceSum * precision;
-        //colorDifferenceSum *= 256;
-        //return (int)(colorDifferenceSum.x + colorDifferenceSum.y + colorDifferenceSum.z);
+        return difference;
     }
 
     public int CalculateScore(Shape shape)
@@ -122,23 +133,27 @@ public class CameraManager : Singleton<CameraManager>
             _camera.backgroundColor = bg_color;
             
             sc = TakeScreenshot(sc);
-            screenshotolors = sc.GetPixels();
+            screenshotolors = sc.GetPixelData<Color32>(MipMapLevel);
         }
         #endregion
 
-        colorDifferenceSum = 0;
+        // Calculate color difference
+        int difference = 0;
         for (int i = index_offset; i < targetColors.Length; i += precision)
         {
-            difference = StaticUtilites.VectorAbs(targetColors[i] - (Vector4)screenshotolors[i]);
-            int worstColor = (int)(StaticUtilites.VectorMax(difference) * 256);
-            //worstColor *= worstColor; // square it >:)
-            colorDifferenceSum += worstColor;
+            //difference = StaticUtilites.VectorAbs(targetColors[i] - screenshotolors[i]);
+            //difference += StaticUtilites.ColorDifference(targetColors[i], screenshotolors[i]);
+            int r = Mathf.Abs(targetColors[i].r - screenshotolors[i].r);
+            int g = Mathf.Abs(targetColors[i].g - screenshotolors[i].g);
+            int b = Mathf.Abs(targetColors[i].b - screenshotolors[i].b);
+            difference += Mathf.Max(Mathf.Max(r, g), b);
+            //int worstColor = (int)(StaticUtilites.VectorMax(difference));
+            //colorDifferenceSum += worstColor;
         }
 
-        int score = colorDifferenceSum * precision;
-        shape.score = score;
+        shape.score = difference;
         shape.sprite.enabled = false;
-        return score;
+        return difference;
     }
 
 
@@ -147,9 +162,9 @@ public class CameraManager : Singleton<CameraManager>
         if(outputTexture == null)
         {
             Debug.Log("initalizing screenshot texture");
-            outputTexture = StaticUtilites.TakeScreenshot(renderTexture);
+            outputTexture = StaticUtilites.TakeScreenshot(renderTexture, GenerateMipMaps);
         }
-            
+        
         _camera.Render();
         outputTexture = StaticUtilites.TakeScreenshot(renderTexture, outputTexture);
         return outputTexture;
@@ -161,7 +176,7 @@ public class CameraManager : Singleton<CameraManager>
     /// </summary>
     /// <param name="currentShape"></param>
     /// <returns></returns>
-    private Color[] GetShapeColorsAsAverageFromTarget(Shape currentShape)
+    private NativeArray<Color32> GetShapeColorsAsAverageFromTarget(Shape currentShape)
     {
         /*
          * potential optimization, make the color arrays smaller to account for precision
@@ -174,13 +189,7 @@ public class CameraManager : Singleton<CameraManager>
         _camera.cullingMask = candidateLayerMask;
 
         sc = TakeScreenshot(sc);
-        screenshotolors = sc.GetPixels();
-
-        /*
-        Texture2D debugoutput = new Texture2D(sc.width, sc.height, sc.format, false);
-        debugoutput.SetPixels(screenshotolors);
-        debugoutput.Apply();
-        debugImage.texture = debugoutput; */
+        screenshotolors = sc.GetPixelData<Color32>(1);
 
         Vector4 sum = Vector4.zero;
         float count = 0;
@@ -199,12 +208,12 @@ public class CameraManager : Singleton<CameraManager>
                 bottomRightIndex.x = Mathf.Max(bottomRightIndex.x, x);
                 bottomRightIndex.y = Mathf.Max(bottomRightIndex.y, y);
 
-                sum += targetColors[i] * screenshotolors[i].a;
+                sum += (((Vector4)(Color)targetColors[i]) * 256) * (screenshotolors[i].a);
                 count += screenshotolors[i].a;
             }
         }
-        Color avg_color = (Color)(sum / count);
-        avg_color.a = currentShape.sprite.color.a;
+        Color32 avg_color = (Color)(sum / count);
+        avg_color.a = (byte)currentShape.sprite.color.a;
 
         // Apply color with avg 
         for (int i = index_offset; i < screenshotolors.Length; i += precision)
@@ -216,23 +225,8 @@ public class CameraManager : Singleton<CameraManager>
             else
                 screenshotolors[i] = Color.Lerp(currentStateColors[i], avg_color, screenshotolors[i].r);
         }
-        /*
-        for(int x = topLeftIndex.x; x < bottomRightIndex.x; x++)
-        {
-            for(int y = topLeftIndex.y; y< bottomRightIndex.y; y++)
-            {
-                int i = y * sc.width + x;
-                if (screenshotolors[i].r == 0)
-                    screenshotolors[i] = currentStateColors[i];
-                else if (currentStateColors[i].r == 1)
-                    screenshotolors[i] = avg_color;
-                else
-                    screenshotolors[i] = Color.Lerp(currentStateColors[i], avg_color, screenshotolors[i].r);
-            }
-        } */
 
-
-        avg_color.a = currentOpacity;   
+        avg_color.a = (byte)currentOpacity;   
         currentShape.SetColor(avg_color);
         return screenshotolors;
     }
@@ -266,12 +260,12 @@ public class CameraManager : Singleton<CameraManager>
     private void GetTargetPixelColors()
     {
         Debug.Log("getting target pixel colors");
-        Color[] temp = EvolutionManager.Instance.TextureToSimulate.GetPixels();
-        targetColors = new Vector4[temp.Length];
+        NativeArray<Color32> temp = EvolutionManager.Instance.TextureToSimulate.GetPixelData<Color32>(MipMapLevel);
+        targetColors = new Color32[temp.Length];
 
         for(int i=0; i<temp.Length; i++)
         {
-            targetColors[i] = (Vector4)(temp[i]);
+            targetColors[i] = temp[i];
         }
     }
 

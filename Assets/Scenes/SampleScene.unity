@@ -219,11 +219,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3f77e496e91ada4db364e6adf857f50, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  resolution: 256
-  precision: 2
+  resolution: 128
+  precision: 1
   _camera: {fileID: 0}
-  currentState: {fileID: 0}
-  currentStateColors: []
+  GenerateMipMaps: 0
+  MipMapLevel: 0
   differenceMaterial: {fileID: 2100000, guid: 69e2c8180eb562748a07d5c1b89d4f23, type: 2}
   debugImage: {fileID: 0}
   currentStateLayer: 7
@@ -486,7 +486,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7af88db29df7906408ec50a5bd40e694, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TextureToSimulate: {fileID: 2800000, guid: 7cfaadf75eb4f89439c5cda141d2640e, type: 3}
+  TextureToSimulate: {fileID: 2800000, guid: f63c0e9fe0d6d0741875e5c677b21e74, type: 3}
   OnRefreshImage:
     m_PersistentCalls:
       m_Calls: []
@@ -2384,14 +2384,14 @@ MonoBehaviour:
   scalar: 0.08
   UseRejectedShapes: 1
   AllRejectedShapes: 1
-  IncreaseStandardsIfBadShapes: 1
+  IncreaseStandardsIfBadShapes: 0
   baseGenerations: 10
   generationsToForceStop: 12
-  initalRandomShapes: 100
-  randomShapesIfBadShapes: 2
-  shapeVariants: 3
-  shapeVariantsIfGoodShapes: 8
-  maxShapes: 6
+  initalRandomShapes: 30
+  randomShapesIfBadShapes: 10
+  shapeVariants: 4
+  shapeVariantsIfGoodShapes: 7
+  maxShapes: 4
   ContinueIteratingIfShapeIsBest: 0
   MaxShapeSize: 5
   MinShapeSize: 0.2
@@ -2632,7 +2632,7 @@ CanvasGroup:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2069442536}
   m_Enabled: 1
-  m_Alpha: 0
+  m_Alpha: 1
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0

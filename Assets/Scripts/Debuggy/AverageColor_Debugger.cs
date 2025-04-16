@@ -41,19 +41,13 @@ public class AverageColorDebugger : MonoBehaviour
         Debug.Log("recording current state");
 
         if (compareTexture == null)
-            compareTexture = new Texture2D(targetTexture.width, targetTexture.height, targetTexture.format, false);
+            compareTexture = new Texture2D(targetTexture.width, targetTexture.height, targetTexture.format, true);
 
         Graphics.CopyTexture(targetTexture, compareTexture);
         compareTexture.Apply();
         compareStateImage.texture = compareTexture;
 
         return;
-        compareTexture = StaticUtilites.TakeScreenshot(currentRenderTexture, currentTexture);
-        Color[] c = compareTexture.GetPixels();
-        Texture2D temp = new Texture2D(compareTexture.width, compareTexture.height);
-        temp.SetPixels(c);
-        temp.Apply();
-        compareStateImage.texture = temp;
     }
 
     /// <summary>
@@ -65,9 +59,9 @@ public class AverageColorDebugger : MonoBehaviour
     public Texture2D MaskPixelDifferences(Texture2D source, Texture2D a, Texture2D b)
     {
         // improve this by not calling .GetPixels unnecessarily many times
-        Color[] sourceColors = source.GetPixels();
-        Color[] a_colors = a.GetPixels();
-        Color[] b_colors = b.GetPixels();
+        var sourceColors = source.GetPixelData<Color>(1);
+        var a_colors = a.GetPixelData<Color>(1);
+        var b_colors = b.GetPixelData<Color>(1);
 
         Color[] output_colors = new Color[sourceColors.Length];
 
@@ -95,7 +89,7 @@ public class AverageColorDebugger : MonoBehaviour
     public Texture2D AverageMaskedPixels(Texture2D maskedTexture)
     {
         // ignore clear pixels
-        Color[] colors = maskedTexture.GetPixels();
+        var colors = maskedTexture.GetPixelData<Color>(1);
         Vector4 sum = Vector4.zero;
         int count = 0;
         for (int i = 0; i < colors.Length; i++)
@@ -119,7 +113,8 @@ public class AverageColorDebugger : MonoBehaviour
         }
 
         Texture2D result = new Texture2D(maskedTexture.width, maskedTexture.height);
-        result.SetPixels(colors);
+        result.SetPixelData<Color>(colors,1);
+        //result.SetPixels(colors);
         result.Apply();
         return result;
     }

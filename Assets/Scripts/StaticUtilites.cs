@@ -55,6 +55,11 @@ public static class StaticUtilites
         return Mathf.Max(Mathf.Max(v.x, v.y), v.z);
     }
 
+    public static int ColorMax(Color32 color)
+    {
+        return Mathf.Max(Mathf.Max(color.r, color.g), color.b);
+    }
+
     public static Vector3Int Vector3ToInt(Vector3 vector)
     {
         return new Vector3Int((int)vector.x, (int)vector.y, (int)vector.z);
@@ -76,30 +81,38 @@ public static class StaticUtilites
         return new Vector4(Mathf.Abs(vector.x), Mathf.Abs(vector.y), Mathf.Abs(vector.z), Mathf.Abs(vector.w));
     }
 
+    /// <summary>
+    /// Returns a vector with all positive components
+    /// </summary>
+    public static Vector4 VectorAbs(Color32 color)
+    {
+        return new Vector4(Mathf.Abs(color.r), Mathf.Abs(color.g), Mathf.Abs(color.b), Mathf.Abs(color.a));
+    }
+
     #endregion
 
     #region Textures
 
-    public static Texture2D TakeScreenshot(RenderTexture inputRenderTexture)
+    public static Texture2D TakeScreenshot(RenderTexture inputRenderTexture, bool mipmaps=false)
     {
         //currentRenderTexture = RenderTexture.active;
 
         //if(RenderTexture.active != inputRenderTexture)
         //    RenderTexture.active = inputRenderTexture;
 
-        Texture2D texture2D = new Texture2D(inputRenderTexture.width, inputRenderTexture.height, TextureFormat.RGB24, false);
+        Texture2D texture2D = new Texture2D(inputRenderTexture.width, inputRenderTexture.height, TextureFormat.RGB24, mipmaps);
 
         return TakeScreenshot(inputRenderTexture, texture2D);
 
         return texture2D;
     }
 
-    public static Texture2D TakeScreenshot(RenderTexture inputRenderTexture, Texture2D outputTexture)
+    public static Texture2D TakeScreenshot(RenderTexture inputRenderTexture, Texture2D outputTexture, bool mipmaps=false)
     {
         if (outputTexture == null)
         {
             Debug.LogWarning("outputTexture not properly set");
-            return TakeScreenshot(inputRenderTexture);
+            return TakeScreenshot(inputRenderTexture, mipmaps);
         }
 
         RenderTexture currentRenderTexture = RenderTexture.active;
@@ -114,7 +127,7 @@ public static class StaticUtilites
         return outputTexture;
     }
 
-    public static Texture2D ResizeTexture(Texture2D source, int maxWidth=128)
+    public static Texture2D ResizeTexture(Texture2D source, int maxWidth = 128, bool mipmaps=false)
     {
         if (source == null || maxWidth <= 0)
             return null;
@@ -127,7 +140,7 @@ public static class StaticUtilites
         RenderTexture.active = rt;
         Graphics.Blit(source, rt);
 
-        Texture2D result = new Texture2D(width, height, source.format, false);
+        Texture2D result = new Texture2D(width, height, source.format, mipmaps);
         result.ReadPixels(new Rect(0, 0, width, height), 0, 0);
         result.Apply();
 
@@ -139,7 +152,7 @@ public static class StaticUtilites
         return result;
     }
 
-    public static Texture2D ResizeTextureHeight(Texture2D source, int maxHeight = 128)
+    public static Texture2D ResizeTextureHeight(Texture2D source, int maxHeight = 128, bool mipmaps = false)
     {
         if (source == null || maxHeight <= 0)
             return null;
@@ -152,7 +165,7 @@ public static class StaticUtilites
         RenderTexture.active = rt;
         Graphics.Blit(source, rt);
 
-        Texture2D result = new Texture2D(width, height, source.format, false);
+        Texture2D result = new Texture2D(width, height, source.format, mipmaps);
         result.ReadPixels(new Rect(0, 0, width, height), 0, 0);
         result.Apply();
 
@@ -241,6 +254,15 @@ public static class StaticUtilites
         if(!invertAlpha)
             output.a = a;
         return output;
+    }
+
+    public static int ColorDifference(Color32 color1, Color32 color2)
+    {
+        int sum = Mathf.Abs(color1.r - color2.r)
+            + Mathf.Abs(color1.g - color2.g)
+            + Mathf.Abs(color1.b - color2.b)
+            + Mathf.Abs(color1.a - color2.a);
+        return sum;
     }
 
     #endregion

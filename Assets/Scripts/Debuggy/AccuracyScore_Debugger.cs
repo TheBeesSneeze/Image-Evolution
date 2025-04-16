@@ -26,8 +26,8 @@ public class AccuracyScore_Debugger : MonoBehaviour
     {
         Texture2D targetTextureTexture = StaticUtilites.TakeScreenshot(targetTexture);
         Texture2D compareTextureTexture = StaticUtilites.TakeScreenshot(compareTexture);
-        Color[] targetColors = targetTextureTexture.GetPixels();
-        Color[] compareColors = compareTextureTexture.GetPixels();
+        var targetColors = targetTextureTexture.GetPixelData<Color>(1);
+        var compareColors = compareTextureTexture.GetPixelData<Color>(1);
 
         // Difference
         Vector3 differenceSum = Vector3.zero;
