@@ -486,7 +486,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7af88db29df7906408ec50a5bd40e694, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TextureToSimulate: {fileID: 2800000, guid: f63c0e9fe0d6d0741875e5c677b21e74, type: 3}
+  TextureToSimulate: {fileID: 2800000, guid: ab31aef2291f52f42ab5f70de1b87371, type: 3}
   OnRefreshImage:
     m_PersistentCalls:
       m_Calls: []
@@ -733,7 +733,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 2
+  m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -1575,7 +1575,7 @@ CanvasGroup:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 936616289}
   m_Enabled: 1
-  m_Alpha: 1
+  m_Alpha: 0
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
@@ -2381,7 +2381,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b3cb0004c71d1b4e9e81d549455108a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  scalar: 0.08
+  scalar: 0.02
   UseRejectedShapes: 1
   AllRejectedShapes: 1
   IncreaseStandardsIfBadShapes: 0

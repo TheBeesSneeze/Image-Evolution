@@ -100,7 +100,7 @@ public static class StaticUtilites
         //if(RenderTexture.active != inputRenderTexture)
         //    RenderTexture.active = inputRenderTexture;
 
-        Texture2D texture2D = new Texture2D(inputRenderTexture.width, inputRenderTexture.height, TextureFormat.RGB24, mipmaps);
+        Texture2D texture2D = new Texture2D(inputRenderTexture.width, inputRenderTexture.height, TextureFormat.RGBA32, mipmaps);
 
         return TakeScreenshot(inputRenderTexture, texture2D);
 
