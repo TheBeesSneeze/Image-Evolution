@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public static class StaticUtilites 
@@ -100,13 +101,20 @@ public static class StaticUtilites
         //if(RenderTexture.active != inputRenderTexture)
         //    RenderTexture.active = inputRenderTexture;
 
-        Texture2D texture2D = new Texture2D(inputRenderTexture.width, inputRenderTexture.height, TextureFormat.RGB24, mipmaps);
+        Texture2D texture2D = new Texture2D(inputRenderTexture.width, inputRenderTexture.height, TextureFormat.RGBA32, mipmaps);
 
         return TakeScreenshot(inputRenderTexture, texture2D);
 
         return texture2D;
     }
 
+    /// <summary>
+    /// Copies the pixels from inputRenderTexture to outputTexture
+    /// </summary>
+    /// <param name="inputRenderTexture"></param>
+    /// <param name="outputTexture"></param>
+    /// <param name="mipmaps"></param>
+    /// <returns></returns>
     public static Texture2D TakeScreenshot(RenderTexture inputRenderTexture, Texture2D outputTexture, bool mipmaps=false)
     {
         if (outputTexture == null)
@@ -115,11 +123,16 @@ public static class StaticUtilites
             return TakeScreenshot(inputRenderTexture, mipmaps);
         }
 
-        RenderTexture currentRenderTexture = RenderTexture.active;
+        var currentRenderTexture = RenderTexture.active;
         //if (RenderTexture.active != inputRenderTexture)
-            RenderTexture.active = inputRenderTexture;
+        RenderTexture.active = inputRenderTexture;
 
-        outputTexture.ReadPixels(new Rect(0, 0, inputRenderTexture.width, inputRenderTexture.height), 0, 0);
+        if (outputTexture.width != inputRenderTexture.width || outputTexture.height != inputRenderTexture.height)
+        {
+            Debug.LogWarning("outputTexture size does not match inputRenderTexture size");
+        }
+
+        outputTexture.ReadPixels(new Rect(0, 0, inputRenderTexture.width, inputRenderTexture.height), 0, 0, mipmaps);
         outputTexture.Apply();
 
         RenderTexture.active = currentRenderTexture;
@@ -194,18 +207,40 @@ public static class StaticUtilites
     /// <param name="x_slices">how many vertical slices the sampling will take</param>
     /// <param name="y_slices">how many horizontal slices the sampling will take</param>
     /// <returns></returns>
-    public static Color AverageTextureColor(Texture2D tex)
+    public static Color AverageTextureColor(Texture2D tex, bool checkOpacity=true)
     {
-        Color[] colors = tex.GetPixels();
-
-        Vector4 sum = Vector4.zero;
-
-        foreach (Color c in colors)
+        if(checkOpacity)
         {
-            sum += (Vector4)c;
-        }
+            Color[] colors = tex.GetPixels();
 
-        return sum / colors.Length;
+            Vector4 sum = Vector4.zero;
+            float count = 0;
+
+            foreach (Color c in colors)
+            {
+                sum += (Vector4)(c.WithAlpha(1)) * c.a;
+                count += c.a;
+            }
+
+            if (count == 0)
+                return Color.clear;
+
+            return sum / count;
+        }
+        else
+        {
+            Color[] colors = tex.GetPixels();
+
+            Vector4 sum = Vector4.zero;
+
+            foreach (Color c in colors)
+            {
+                sum += (Vector4)c;
+            }
+
+            return sum / colors.Length;
+        }
+        
 
     }
 

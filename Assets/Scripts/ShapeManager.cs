@@ -78,23 +78,21 @@ public class ShapeManager : Singleton<ShapeManager>
     private void Start()
     {
         EvolutionManager.Instance.OnRefreshImage.AddListener(SetHalfSize);
-
-        DebugHSDFGds();
     }
 
-    async void DebugHSDFGds()
+    public void StartMakingShapes()
     {
-        await Task.Delay(3500);
-        //NaturallySelectNewShape();
-        OnShapeSelected.Invoke();
+        Shape[] currentshapes = FindObjectsOfType<Shape>();
+        foreach (Shape shape in currentshapes)
+        {
+            Destroy(shape.gameObject);
+        }
 
-        bestScore = CameraManager.Instance.CalculateScore();
-        currentScore = bestScore;
-        debug_text.text = bestScore.ToString();
+        bestScore = -1;
 
-        //NaturallySelectNewShape();
         StartCoroutine(KeepMakingShapesForever());
     }
+
 
     private IEnumerator KeepMakingShapesForever()
     {
@@ -173,7 +171,7 @@ public class ShapeManager : Singleton<ShapeManager>
         ShapePoolManager.Instance.RemoveAllShapes();
 
         #region set score text
-        if (winner.score < bestScore)
+        if (winner.score < bestScore || bestScore == -1)
             debug_text.color = Color.green;
         
         else if(winner.score < currentScore)

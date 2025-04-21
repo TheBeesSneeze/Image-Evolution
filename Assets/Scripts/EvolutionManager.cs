@@ -1,6 +1,8 @@
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
+using Unity.Collections;
+
 
 public class EvolutionManager : Singleton<EvolutionManager>
 {
@@ -14,44 +16,23 @@ public class EvolutionManager : Singleton<EvolutionManager>
     int bestCandidateIdx;
     bool started = false;
 
-    private static Color32[] targetColors {
-        get {
-            if(CameraManager.Instance.targetColors != null)
-                return CameraManager.Instance.targetColors; 
-            else
-                return null;
-        }
-    }
+    private static NativeArray<Color32> targetColors =>
+        CameraManager.Instance.targetColors;
 
-    // Start is called before the first frame update
-    void Start()
+    public static void BeginGeneration(Texture2D texture)
     {
-        TextureToSimulate = StaticUtilites.ResizeTexture(TextureToSimulate, CameraManager.Instance.resolution, CameraManager.Instance.GenerateMipMaps);
+        texture = StaticUtilites.ResizeTexture(texture, CameraManager.Instance.resolution, CameraManager.Instance.GenerateMipMaps);
+        Instance.TextureToSimulate = texture;
 
-        InitialRefreshDelay();
-    }
+        Instance.started = true;
+        Instance.OnRefreshImage.Invoke();
 
-    async void InitialRefreshDelay()
-    {
-        await Task.Delay(2500);
-        Debug.Log("its show time");
-        OnRefreshImage.Invoke();
-        started = true;
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        if (!started)
-            return;
-
+        ShapeManager.Instance.StartMakingShapes();
     }
 
     public static Color GetRandomColorFromTargetTexture()
     {
         return targetColors[Random.Range(0, targetColors.Length)];
     }
-    
-    
 
 }
