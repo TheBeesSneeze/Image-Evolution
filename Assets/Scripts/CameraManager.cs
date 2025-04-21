@@ -11,6 +11,7 @@ public class CameraManager : Singleton<CameraManager>
     [Header("Settings")]
     public int resolution = 96;
     [SerializeField] private int precision = 2;
+    [SerializeField] private bool useMaxColor = true;
 
 
     public static float CameraHeightWorldSpace => Instance._camera.orthographicSize * 2;
@@ -59,7 +60,8 @@ public class CameraManager : Singleton<CameraManager>
 
         _camera = GetComponent<Camera>();
 
-        currentState = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGBA32, GenerateMipMaps);
+        //currentState = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGBA32, GenerateMipMaps);
+        currentState = new Texture2D(renderTexture.width, renderTexture.height, EvolutionManager.Instance.TextureToSimulate.format, GenerateMipMaps);
 
         if (!ShapeManager.Instance.AverageColorMask)
         { 
@@ -97,32 +99,20 @@ public class CameraManager : Singleton<CameraManager>
 
         screenshotolors = sc.GetPixelData<Color32>(MipMapLevel);
 
-        int difference = 0;
-        for (int i = index_offset; i < targetColors.Length; i += precision)
-        {
-
-            //difference = StaticUtilites.VectorAbs(targetColors[i] - screenshotolors[i]);
-            //difference += StaticUtilites.ColorDifference(targetColors[i], screenshotolors[i]);
-            int r = Mathf.Abs(targetColors[i].r - screenshotolors[i].r);
-            int g = Mathf.Abs(targetColors[i].g - screenshotolors[i].g);
-            int b = Mathf.Abs(targetColors[i].b - screenshotolors[i].b);
-            difference += Mathf.Max(Mathf.Max(r, g), b);
-            //int worstColor = (int)(StaticUtilites.VectorMax(difference));
-            //colorDifferenceSum += worstColor;
-        }
+        int difference = GetTextureDifference();
 
         return difference;
     }
 
     public int CalculateScore(Shape shape)
     {
-        if(shape.score > -1)
+        if (shape.score > -1)
             return shape.score;
 
         #region get screenshot colors
         shape.sprite.enabled = true;
-        if ( shape.colorMode == ShapeColorMode.AverageColorFromTexture && 
-             ShapeManager.Instance.AverageColorMask && 
+        if (shape.colorMode == ShapeColorMode.AverageColorFromTexture &&
+             ShapeManager.Instance.AverageColorMask &&
             (ShapeManager.Instance.ApplyAverageToVariants || !shape.hasSetColor))
         {
             screenshotolors = GetShapeColorsAsAverageFromTarget(shape);
@@ -131,13 +121,22 @@ public class CameraManager : Singleton<CameraManager>
         {
             _camera.cullingMask = everythingLayerMask;
             _camera.backgroundColor = bg_color;
-            
+
             sc = TakeScreenshot(sc);
             screenshotolors = sc.GetPixelData<Color32>(MipMapLevel);
         }
         #endregion
 
         // Calculate color difference
+        int difference = GetTextureDifference();
+
+        shape.score = difference;
+        shape.sprite.enabled = false;
+        return difference;
+    }
+
+    private int GetTextureDifference()
+    {
         int difference = 0;
         for (int i = index_offset; i < targetColors.Length; i += precision)
         {
@@ -146,13 +145,13 @@ public class CameraManager : Singleton<CameraManager>
             int r = Mathf.Abs(targetColors[i].r - screenshotolors[i].r);
             int g = Mathf.Abs(targetColors[i].g - screenshotolors[i].g);
             int b = Mathf.Abs(targetColors[i].b - screenshotolors[i].b);
-            difference += Mathf.Max(Mathf.Max(r, g), b);
+            if (useMaxColor)
+                difference += Mathf.Max(Mathf.Max(r, g), b);
+            else
+                difference += r + g + b;
             //int worstColor = (int)(StaticUtilites.VectorMax(difference));
             //colorDifferenceSum += worstColor;
         }
-
-        shape.score = difference;
-        shape.sprite.enabled = false;
         return difference;
     }
 
