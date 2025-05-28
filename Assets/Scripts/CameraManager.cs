@@ -11,8 +11,8 @@ public class CameraManager : Singleton<CameraManager>
     [Header("Settings")]
     public int resolution = 96;
     [SerializeField] private int precision = 2;
+    [Tooltip("Uses max from r,g,b")]
     [SerializeField] private bool useMaxColor = true;
-
 
     public static float CameraHeightWorldSpace => Instance._camera.orthographicSize * 2;
     public static float CameraWidthWorldSpace => CameraHeightWorldSpace * Instance._camera.aspect;
@@ -73,10 +73,11 @@ public class CameraManager : Singleton<CameraManager>
         EvolutionManager.Instance.OnRefreshImage.AddListener(UpdateSizeToMatchImage);
         EvolutionManager.Instance.OnRefreshImage.AddListener(GetTargetPixelColors);
 
-        ShapeManager.OnShapeSelected.AddListener(OnShapeCreated);
+        //ShapeManager.OnShapeCreated += _ => OnShapeCreated();
+        ShapeManager.OnShapeCreated += OnShapeCreated;
     }
 
-    void OnShapeCreated()
+    void OnShapeCreated(Shape newShape)
     {
         //sc = TakeScreenshot(sc);
         index_offset = (index_offset + 1) % precision;
@@ -239,7 +240,7 @@ public class CameraManager : Singleton<CameraManager>
             if(cam != _camera)
                 cam.backgroundColor = bg_color;
 
-        OnShapeCreated();
+        OnShapeCreated(null);
     }
 
     private void UpdateSizeToMatchImage()

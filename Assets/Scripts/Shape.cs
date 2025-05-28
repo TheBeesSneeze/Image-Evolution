@@ -295,7 +295,7 @@ public class Shape : MonoBehaviour
         hasSetColor = false;
         score = -1;
         sprite.enabled = false;
-        ShapeManager.OnShapeSelected.Invoke(); // to get current state
+        ShapeManager.OnShapeCreated.Invoke(null); // to get current state
         sprite.enabled = true;
         CameraManager.Instance.CalculateScore(this);
         sprite.enabled = true;

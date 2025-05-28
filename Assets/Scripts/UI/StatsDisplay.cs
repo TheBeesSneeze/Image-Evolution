@@ -17,7 +17,7 @@ public class StatsDisplay : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        ShapeManager.OnShapeSelected.AddListener(OnShapeSucceeded);
+        ShapeManager.OnShapeCreated += OnShapeSucceeded;
         ShapeManager.OnShapeFailed.AddListener(OnShapeFailed);
 
         timeOfLastShape = Time.realtimeSinceStartup;
@@ -28,7 +28,7 @@ public class StatsDisplay : MonoBehaviour
         //Debug.logw
     }
 
-    void OnShapeSucceeded()
+    void OnShapeSucceeded(Shape newShape)
     {
         succeededShapesCount++;
         SucceededShapesText.text = "Successful shapes: " + succeededShapesCount.ToString();

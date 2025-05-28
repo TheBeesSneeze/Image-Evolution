@@ -1,3 +1,4 @@
+using System;
 using NaughtyAttributes;
 using System.Collections;
 using System.Collections.Generic;
@@ -7,6 +8,7 @@ using UnityEngine.Events;
 using TMPro;
 using System.Reflection;
 using Unity.VisualScripting;
+using Random = UnityEngine.Random;
 
 public class ShapeManager : Singleton<ShapeManager>
 {
@@ -62,7 +64,7 @@ public class ShapeManager : Singleton<ShapeManager>
     [Header("Sprites")]
     [SerializeField] public List<Sprite> shapeSprites;
 
-    public static UnityEvent OnShapeSelected = new UnityEvent();
+    public static Action<Shape> OnShapeCreated;
     public static UnityEvent OnShapeFailed = new UnityEvent();
 
     [HideInInspector] public static Vector2 halfsize;
@@ -76,6 +78,8 @@ public class ShapeManager : Singleton<ShapeManager>
     private int bestScore = -1;
     private int currentScore = -1;
     private int shapesCreated = 0;
+
+    private bool paused;
 
     #region obsolete
     [System.Obsolete]
@@ -93,7 +97,7 @@ public class ShapeManager : Singleton<ShapeManager>
     {
         await Task.Delay(3500);
         //NaturallySelectNewShape();
-        OnShapeSelected.Invoke();
+        OnShapeCreated.Invoke(null);
 
         bestScore = CameraManager.Instance.CalculateScore();
         currentScore = bestScore;
@@ -108,12 +112,19 @@ public class ShapeManager : Singleton<ShapeManager>
     {
         while (true)
         {
-            Destroy(NaturallySelectNewShape());
+            if(!paused) 
+	            Destroy(NaturallySelectNewShape());
             //NaturallySelectNewShape();
 
             yield return null;
         }
-    }    
+    }
+
+    void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.Space))
+            paused = !paused;
+    }
 
     [Button]
     public Shape NaturallySelectNewShape()
@@ -194,7 +205,7 @@ public class ShapeManager : Singleton<ShapeManager>
         #endregion
 
         if(winner.score <= currentScore)
-            OnShapeSelected.Invoke();
+            OnShapeCreated.Invoke(winner);
 
         shapesCreated++;
 
