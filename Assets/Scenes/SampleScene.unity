@@ -487,7 +487,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7af88db29df7906408ec50a5bd40e694, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TextureToSimulate: {fileID: 2800000, guid: f78cfb8a8bec16540a5d544f5531032e, type: 3}
+  TextureToSimulate: {fileID: 2800000, guid: 05f54fc4dda4c9d44999ddc203bb2320, type: 3}
   OnRefreshImage:
     m_PersistentCalls:
       m_Calls: []
@@ -2382,7 +2382,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b3cb0004c71d1b4e9e81d549455108a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  scalar: 0.02
   UseRejectedShapes: 1
   AllRejectedShapes: 1
   IncreaseStandardsIfBadShapes: 0
@@ -2394,6 +2393,13 @@ MonoBehaviour:
   shapeVariantsIfGoodShapes: 7
   maxShapes: 4
   ContinueIteratingIfShapeIsBest: 0
+  ChanceToChangeSprite: 0.2
+  ChanceToFlipSprite: 0.1
+  rotationScalar: 0.05
+  positionScalar: 0.02
+  colorScalar: 0.04
+  opacityScalar: 0.04
+  sizeScalar: 0.04
   MaxShapeSize: 5
   MinShapeSize: 0.2
   PreserveAspectRatio: 1
@@ -2406,7 +2412,6 @@ MonoBehaviour:
   AnyRandomColorFromImage: 1
   randomizeZOrder: 0
   MaxZOrder: 100
-  ChanceToChangeSprite: 0.2
   shapeSprites:
   - {fileID: 7482667652216324306, guid: 48e93eef0688c4a259cb0eddcd8661f7, type: 3}
   - {fileID: -2413806693520163455, guid: ebe73ca9363db456bacf42c025bb4847, type: 3}

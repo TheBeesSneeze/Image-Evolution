@@ -11,7 +11,6 @@ using Unity.VisualScripting;
 public class ShapeManager : Singleton<ShapeManager>
 {
     [Header("Properties")]
-    [SerializeField] private float scalar = 0.1f;
     [SerializeField] private bool UseRejectedShapes = true;
     [ShowIf("UseRejectedShapes")]
     [SerializeField] private bool AllRejectedShapes = true;
@@ -26,6 +25,15 @@ public class ShapeManager : Singleton<ShapeManager>
     [SerializeField] private int shapeVariantsIfGoodShapes = 5;
     [SerializeField] private int maxShapes=15;
     [SerializeField] private bool ContinueIteratingIfShapeIsBest=true;
+
+    [BoxGroup("Scalars")][SerializeField] float ChanceToChangeSprite = 0.5f;
+    [BoxGroup("Scalars")][SerializeField] float ChanceToFlipSprite = 0.1f;
+    [BoxGroup("Scalars")][SerializeField] float rotationScalar = 0.05f;
+    [BoxGroup("Scalars")][SerializeField] float positionScalar = 0.02f;
+    [BoxGroup("Scalars")][SerializeField] float colorScalar = 0.04f;
+    [BoxGroup("Scalars")][SerializeField] float opacityScalar = 0.04f;
+    [BoxGroup("Scalars")][SerializeField] float sizeScalar = 0.04f;
+
 
     [Header("Size")]
     public float MaxShapeSize;
@@ -52,7 +60,6 @@ public class ShapeManager : Singleton<ShapeManager>
     public int MaxZOrder = 100;
 
     [Header("Sprites")]
-    public float ChanceToChangeSprite = 0.5f;
     [SerializeField] public List<Sprite> shapeSprites;
 
     public static UnityEvent OnShapeSelected = new UnityEvent();
@@ -96,6 +103,7 @@ public class ShapeManager : Singleton<ShapeManager>
         StartCoroutine(KeepMakingShapesForever());
     }
 
+    #region natural selection
     private IEnumerator KeepMakingShapesForever()
     {
         while (true)
@@ -282,7 +290,7 @@ public class ShapeManager : Singleton<ShapeManager>
 
             for (int j = 0; j< variantsToCreate; j++)
             {
-                Shape variant = CreateNewShapeVariant(shapes[i], scalar);
+                Shape variant = CreateNewShapeVariant(shapes[i]);
                 newShapes.Add(variant);
                 variant.sprite.enabled = false;
             }
@@ -406,6 +414,8 @@ public class ShapeManager : Singleton<ShapeManager>
         scaledHalfSize *= 1.1f;
     }
 
+    #endregion
+
     #region shape manipulation
 
     [Button]
@@ -436,34 +446,34 @@ public class ShapeManager : Singleton<ShapeManager>
         return shape;
     }
 
-    private void Random_TweakShape(Shape shape, float scalar)
+    private void Random_TweakShape(Shape shape)
     {
         shape.RandomizeSprite(ChanceToChangeSprite);
-        shape.RandomizeSpriteFlip(scalar);
-        shape.RandomizeRotation(scalar);
-        shape.RandomizePosition(scalar);
-        shape.RandomizeOpacity(scalar);
-        shape.RandomizeScale(scalar);
+        shape.RandomizeSpriteFlip(ChanceToFlipSprite);
+        shape.RandomizeRotation(rotationScalar);
+        shape.RandomizePosition(positionScalar);
+        shape.RandomizeOpacity(opacityScalar);
+        shape.RandomizeScale(sizeScalar);
         if(randomizeZOrder)
-            shape.RandomizeZOrder(scalar);
+            shape.RandomizeZOrder(0.1f);
         if(shape.colorMode == ShapeColorMode.RandomColorByPosition || !ApplyAverageToVariants)
         {
             if (FullyRandomColor)
-                shape.RandomizeColorCompletely(scalar, false);
+                shape.RandomizeColorCompletely(colorScalar, false);
             else
-                shape.RandomColorGenerationMethod(scalar);
+                shape.RandomColorGenerationMethod(colorScalar);
         }
     }
 
     /// <summary>
     /// Returns true if new shape is better
     /// </summary>
-    public Shape CreateNewShapeVariant(Shape shape, float scalar)
+    public Shape CreateNewShapeVariant(Shape shape)
     {
         Shape newShape = ShapePoolManager.Instance.CreateShape(shape);
 
         newShape.Initialize();
-        Random_TweakShape(newShape, scalar);
+        Random_TweakShape(newShape);
         newShape.variantLevel = shape.variantLevel + 1;
 
         shape.sprite.enabled = false;
@@ -508,7 +518,7 @@ public class ShapeManager : Singleton<ShapeManager>
         for (int i = 0; i < n; i++)
         {
             shapeTweakIndex = (shapeTweakIndex + 1) % shapes.Count;
-            Random_TweakShape(shapes[shapeTweakIndex], scalar);
+            Random_TweakShape(shapes[shapeTweakIndex]);
         }
     }
 
