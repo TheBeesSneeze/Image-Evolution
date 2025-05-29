@@ -127,35 +127,53 @@ public static class StaticUtilites
         return outputTexture;
     }
 
-    public static Texture2D ResizeTexture(Texture2D source, int maxWidth = 128, bool mipmaps=false)
+    public static Texture2D ResizeTexture(Texture2D source, int maxSize = 128, bool mipmaps=false)
     {
-        if (source == null || maxWidth <= 0)
-            return null;
+        if (source == null || maxSize <= 0)
+            return source;
 
-        int width = Mathf.Min(maxWidth, source.width);
-        float aspectRatio = (float)source.height / source.width;
-        int height = Mathf.RoundToInt(width * aspectRatio);
-
-        RenderTexture rt = new RenderTexture(width, height, 24);
-        RenderTexture.active = rt;
-        Graphics.Blit(source, rt);
-
-        Texture2D result = new Texture2D(width, height, source.format, mipmaps);
-        result.ReadPixels(new Rect(0, 0, width, height), 0, 0);
-        result.Apply();
-
-        RenderTexture.active = null;
-        rt.Release();
-
-        result = ResizeTextureHeight(result, maxWidth);
+        
+        var result = ResizeTextureWidth(source, maxSize, mipmaps);
+		result = ResizeTextureHeight(result, maxSize, mipmaps);
 
         return result;
     }
 
-    public static Texture2D ResizeTextureHeight(Texture2D source, int maxHeight = 128, bool mipmaps = false)
+    public static Texture2D ResizeTextureWidth(Texture2D source, int maxWidth = 128, bool mipmaps = false)
+    {
+	    if (source == null || maxWidth <= 0)
+		    return source;
+
+		// only if necessary
+		if (source.width <= maxWidth)
+		    return source; 
+	    
+	    int width = Mathf.Min(maxWidth, source.width);
+	    float aspectRatio = (float)source.height / source.width;
+	    int height = Mathf.RoundToInt(width * aspectRatio);
+
+	    RenderTexture rt = new RenderTexture(width, height, 24);
+	    RenderTexture.active = rt;
+	    Graphics.Blit(source, rt);
+
+	    Texture2D result = new Texture2D(width, height, source.format, mipmaps);
+	    result.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+	    result.Apply();
+
+	    RenderTexture.active = null;
+	    rt.Release();
+
+	    return result;
+    }
+
+	public static Texture2D ResizeTextureHeight(Texture2D source, int maxHeight = 128, bool mipmaps = false)
     {
         if (source == null || maxHeight <= 0)
-            return null;
+            return source;
+
+	    // only if necessary
+        if (source.height <= maxHeight)
+            return source;
 
         int height = Mathf.Min(maxHeight, source.height);
         float aspectRatio = (float)source.width / source.height;
