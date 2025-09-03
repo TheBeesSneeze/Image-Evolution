@@ -11,57 +11,43 @@ using UnityEngine.Events;
 
 public class ShapeManager : Singleton<ShapeManager>
 {
-    [Header("Properties")]
-    [SerializeField] private bool UseRejectedShapes = true;
-    [ShowIf("UseRejectedShapes")]
-    [SerializeField] private bool AllRejectedShapes = true;
-    [SerializeField] private bool IncreaseStandardsIfBadShapes = true;
+    private SettingsProfile settingsProfile => EvolutionManager.Instance.settingsProfile;
 
-    [Header("Iterations")]
-    [SerializeField] private int baseGenerations = 10;
-    [SerializeField] private int generationsToForceStop = 100;
-    [SerializeField] public int initalRandomShapes = 100;
-    [SerializeField] public int randomShapesIfBadShapes = 10;
-    [SerializeField] private int shapeVariants = 5;
-    [SerializeField] private int shapeVariantsIfGoodShapes = 5;
-    [SerializeField] private int maxShapes=15;
-    [SerializeField] private bool ContinueIteratingIfShapeIsBest=true;
+    #region Settings Profile Variables
+    // these variables are better sorted in SettingsProfile.cs
+    private bool UseRejectedShapes => settingsProfile.UseRejectedShapes;
+    private bool AllRejectedShapes => settingsProfile.AllRejectedShapes;
+    private bool IncreaseStandardsIfBadShapes => settingsProfile.IncreaseStandardsIfBadShapes;
+    private int baseGenerations => settingsProfile.baseGenerations;
+    private int generationsToForceStop => settingsProfile.generationsToForceStop;
+    public int initalRandomShapes => settingsProfile.initalRandomShapes;
+    public int randomShapesIfBadShapes => settingsProfile.randomShapesIfBadShapes;
+    private int shapeVariants => settingsProfile.shapeVariants;
+    private int shapeVariantsIfGoodShapes => settingsProfile.shapeVariantsIfGoodShapes;
+    private int maxShapes=> settingsProfile.maxShapes;
+    private bool ContinueIteratingIfShapeIsBest => settingsProfile.ContinueIteratingIfShapeIsBest;
+    float ChanceToChangeSprite => settingsProfile.ChanceToChangeSprite;
+    float ChanceToFlipSprite => settingsProfile.ChanceToFlipSprite;
+    float rotationScalar => settingsProfile.rotationScalar;
+    float positionScalar => settingsProfile.positionScalar;
+    float colorScalar => settingsProfile.colorScalar;
+    float opacityScalar => settingsProfile.opacityScalar;
+    float sizeScalar => settingsProfile.sizeScalar;
+    public float MaxShapeSize=> settingsProfile.MaxShapeSize;
+    public float MinShapeSize => settingsProfile.MinShapeSize;
+    public bool PreserveAspectRatio => settingsProfile.PreserveAspectRatio;
+    public float SmallShapesSizePreference => settingsProfile.SmallShapesSizePreference;
+    public float minAlpha => settingsProfile.minAlpha;
+    public float maxAlpha => settingsProfile.maxAlpha;
+    public bool AverageColorMask => settingsProfile.AverageColorMask;
+    public bool ApplyAverageToVariants => settingsProfile.ApplyAverageToVariants;
+    public bool FullyRandomColor => settingsProfile.FullyRandomColor;
+    public bool AnyRandomColorFromImage=> settingsProfile.AnyRandomColorFromImage;
+    private bool randomizeZOrder=> settingsProfile.randomizeZOrder;
+    public int MaxZOrder => settingsProfile.MaxZOrder;
+    public List<Sprite> shapeSprites=> settingsProfile.shapeSprites;
 
-    [BoxGroup("Scalars")][SerializeField] float ChanceToChangeSprite = 0.5f;
-    [BoxGroup("Scalars")][SerializeField] float ChanceToFlipSprite = 0.1f;
-    [BoxGroup("Scalars")][SerializeField] float rotationScalar = 0.05f;
-    [BoxGroup("Scalars")][SerializeField] float positionScalar = 0.02f;
-    [BoxGroup("Scalars")][SerializeField] float colorScalar = 0.04f;
-    [BoxGroup("Scalars")][SerializeField] float opacityScalar = 0.04f;
-    [BoxGroup("Scalars")][SerializeField] float sizeScalar = 0.04f;
-
-
-    [Header("Size")]
-    public float MaxShapeSize;
-    public float MinShapeSize;
-    public bool PreserveAspectRatio = true;
-    public float SmallShapesSizePreference = 2;
-
-    [Header("Alpha")]
-    public float minAlpha = 0.15f;
-    public float maxAlpha = 2;
-
-    [Header("Colors")]
-    public bool AverageColorMask = true;
-    [ShowIf("AverageColorMask")]
-    public bool ApplyAverageToVariants = true;
-    //[HideIf("AverageColorMask")]
-    public bool FullyRandomColor = true;
-    //[HideIf(EConditionOperator.Or, "AverageColorMask", "FullyRandomColor")]
-    public bool AnyRandomColorFromImage=true;
-
-    [Header("Other")]
-    public bool randomizeZOrder=false;
-    [ShowIf("randomizeZOrder")]
-    public int MaxZOrder = 100;
-
-    [Header("Sprites")]
-    [SerializeField] public List<Sprite> shapeSprites;
+    #endregion
 
     public static UnityEvent OnShapeSelected = new UnityEvent();
     public static UnityEvent OnShapeFailed = new UnityEvent();
@@ -227,30 +213,31 @@ public class ShapeManager : Singleton<ShapeManager>
 
     private void IncreaseStandards()
     {
+        // settingsProfile is a copy of the original, so modifying it is ok
         int statToIncrease = Random.Range(0, 6);
 
         switch(statToIncrease)
         {
             case 0:
-                baseGenerations++;
+                settingsProfile.baseGenerations++;
                 break;
             case 1:
-                generationsToForceStop++;
+                settingsProfile.generationsToForceStop++;
                 break;
             case 2:
-                initalRandomShapes++;
+                settingsProfile.initalRandomShapes++;
                 break;
             case 3:
-                randomShapesIfBadShapes++;
+                settingsProfile.randomShapesIfBadShapes++;
                 break;
             case 4:
-                shapeVariants++;
+                settingsProfile.shapeVariants++;
                 break;
             case 5:
-                shapeVariantsIfGoodShapes++;
+                settingsProfile.shapeVariantsIfGoodShapes++;
                 break;
             case 6:
-                maxShapes++;
+                settingsProfile.maxShapes++;
                 break;
         };
         

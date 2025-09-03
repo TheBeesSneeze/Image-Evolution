@@ -26,7 +26,6 @@ public class CameraManager : Singleton<CameraManager>
     [ShowIf("GenerateMipMaps")]
     public int MipMapLevel = 0;
 
-    private Texture2D currentState;
     private NativeArray<Color32> currentStateColors;
 
     [Header("Material")]
@@ -42,10 +41,6 @@ public class CameraManager : Singleton<CameraManager>
     private LayerMask currentStateLayerMask, candidateLayerMask, everythingLayerMask;
 
     private Texture2D sc;
-    //private Vector3 colorDifferenceSum;
-    private int colorDifferenceSum;
-    private Vector3 targetColor,currentColor,newColor;
-    private Vector3 newColorDifference;
 
     // calculation variables
     // TODO: many of these variables arent used / obsolete
@@ -54,6 +49,7 @@ public class CameraManager : Singleton<CameraManager>
     private int index_offset = 0;
     private Color32 bg_color;
 
+    // later shader
     [SerializeField] ComputeShader shader;
     int kernel;
     ComputeBuffer resultBuffer;
@@ -71,8 +67,7 @@ public class CameraManager : Singleton<CameraManager>
 
         _camera = GetComponent<Camera>();
 
-        //currentState = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGBA32, GenerateMipMaps);
-        currentState = new Texture2D(renderTexture.width, renderTexture.height, EvolutionManager.Instance.TextureToSimulate.format, GenerateMipMaps);
+        //currentState = new Texture2D(renderTexture.width, renderTexture.height, EvolutionManager.Instance.TextureToSimulate.format, GenerateMipMaps);
 
         if (!ShapeManager.Instance.AverageColorMask)
         { 
@@ -144,29 +139,9 @@ public class CameraManager : Singleton<CameraManager>
         return shape.score;
     }
 
-    private int GetTextureDifference()
-    {
-        int difference = 0;
-        for (int i = index_offset; i < targetColors.Length; i += precision)
-        {
-            //difference = StaticUtilites.VectorAbs(targetColors[i] - screenshotolors[i]);
-            //difference += StaticUtilites.ColorDifference(targetColors[i], screenshotolors[i]);
-            int r = Mathf.Abs(targetColors[i].r - screenshotolors[i].r);
-            int g = Mathf.Abs(targetColors[i].g - screenshotolors[i].g);
-            int b = Mathf.Abs(targetColors[i].b - screenshotolors[i].b);
-            if (useMaxColor)
-                difference += Mathf.Max(Mathf.Max(r, g), b);
-            else
-                difference += r + g + b;
-            //int worstColor = (int)(StaticUtilites.VectorMax(difference));
-            //colorDifferenceSum += worstColor;
-        }
-        return difference;
-    }
-
-
     public Texture2D TakeScreenshot(Texture2D outputTexture)
     {
+        Debug.Log("taking a screenshot. avoid calling this function often");
         if(outputTexture == null)
         {
             Debug.Log("initalizing screenshot texture");
@@ -226,8 +201,7 @@ public class CameraManager : Singleton<CameraManager>
         //double t = Time.realtimeSinceStartupAsDouble;
 
         sc = TakeScreenshot(sc);
-        //colorDifferenceSum = Vector3.zero;
-        colorDifferenceSum = 0;
+        //colorDifferenceSum = 0;
 
         screenshotolors = sc.GetPixelData<Color32>(MipMapLevel);
 
@@ -334,6 +308,27 @@ public class CameraManager : Singleton<CameraManager>
         avg_color.a = (byte)currentOpacity;
         currentShape.SetColor(avg_color);
         return screenshotolors;
+    }
+
+    [System.Obsolete]
+    private int GetTextureDifference()
+    {
+        int difference = 0;
+        for (int i = index_offset; i < targetColors.Length; i += precision)
+        {
+            //difference = StaticUtilites.VectorAbs(targetColors[i] - screenshotolors[i]);
+            //difference += StaticUtilites.ColorDifference(targetColors[i], screenshotolors[i]);
+            int r = Mathf.Abs(targetColors[i].r - screenshotolors[i].r);
+            int g = Mathf.Abs(targetColors[i].g - screenshotolors[i].g);
+            int b = Mathf.Abs(targetColors[i].b - screenshotolors[i].b);
+            if (useMaxColor)
+                difference += Mathf.Max(Mathf.Max(r, g), b);
+            else
+                difference += r + g + b;
+            //int worstColor = (int)(StaticUtilites.VectorMax(difference));
+            //colorDifferenceSum += worstColor;
+        }
+        return difference;
     }
 
     #endregion

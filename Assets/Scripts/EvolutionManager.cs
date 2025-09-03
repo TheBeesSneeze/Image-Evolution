@@ -7,6 +7,8 @@ public class EvolutionManager : Singleton<EvolutionManager>
     [Header("This might get deleted, but its important")]
     public Texture2D TextureToSimulate;
 
+    public SettingsProfile settingsProfile;
+
     // Call this AFTER setting TextureToSimulate
     public UnityEvent OnRefreshImage = new UnityEvent();
 
@@ -26,6 +28,7 @@ public class EvolutionManager : Singleton<EvolutionManager>
     // Start is called before the first frame update
     void Start()
     {
+        settingsProfile = Instantiate(settingsProfile);
         TextureToSimulate = StaticUtilites.ResizeTexture(TextureToSimulate, CameraManager.Instance.resolution, CameraManager.Instance.GenerateMipMaps);
 
         InitialRefreshDelay();
