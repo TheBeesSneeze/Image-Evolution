@@ -48,6 +48,7 @@ public class CameraManager : Singleton<CameraManager>
     private Vector3 newColorDifference;
 
     // calculation variables
+    // TODO: many of these variables arent used / obsolete
     [HideInInspector] public Color32[] targetColors; // move to evolution manager?
     private NativeArray<Color32> screenshotolors;
     private int index_offset = 0;
@@ -83,39 +84,38 @@ public class CameraManager : Singleton<CameraManager>
         EvolutionManager.Instance.OnRefreshImage.AddListener(UpdateSizeToMatchImage);
         EvolutionManager.Instance.OnRefreshImage.AddListener(GetTargetPixelColors);
 
-        ShapeManager.OnShapeSelected.AddListener(OnShapeCreated);
-    }
-
-    void OnShapeCreated()
-    {
-        //sc = TakeScreenshot(sc);
-        //index_offset = (index_offset + 1) % precision;
-        //differenceMaterial.SetTexture("_Current_State", currentState);
-
-        _camera.backgroundColor = bg_color;
-        _camera.cullingMask = currentStateLayerMask;
-        //currentState = TakeScreenshot(currentState);
-        //currentStateColors = currentState.GetPixelData<Color32>(MipMapLevel);
-        //_camera.cullingMask = candidateLayerMask;
+        //ShapeManager.OnShapeSelected.AddListener(OnShapeCreated);
     }
 
     public int CalculateScore()
     {
-        //double t = Time.realtimeSinceStartupAsDouble;
+        _camera.cullingMask = everythingLayerMask;
+        _camera.backgroundColor = bg_color;
 
-        sc = TakeScreenshot(sc);
-        //colorDifferenceSum = Vector3.zero;
-        colorDifferenceSum = 0;
+        _camera.Render();
 
-        screenshotolors = sc.GetPixelData<Color32>(MipMapLevel);
+        resultBuffer.SetData(new uint[1]); // reset
 
-        int difference = GetTextureDifference();
+        shader.SetTexture(kernel, "Target", EvolutionManager.Instance.TextureToSimulate);
+        shader.SetTexture(kernel, "Current", renderTexture);
+        shader.SetBuffer(kernel, "Result", resultBuffer);
 
-        return difference;
+        int threadGroupsX = EvolutionManager.Instance.TextureToSimulate.width / 8;
+        int threadGroupsY = EvolutionManager.Instance.TextureToSimulate.height / 8;
+        shader.Dispatch(kernel, threadGroupsX, threadGroupsY, 1);
+
+        resultBuffer.GetData(resultArray); // just one int
+        return (int)resultArray[0];
     }
 
     public int CalculateScore(Shape shape)
     {
+        if(shape == null)
+        {
+            Debug.LogWarning("Shape is null");
+            return CalculateScore();
+        }
+
         if (shape.score > -1)
             return shape.score;
 
@@ -142,34 +142,6 @@ public class CameraManager : Singleton<CameraManager>
 
 
         return shape.score;
-
-        /*if (shape.score > -1)
-            return shape.score;
-
-        #region get screenshot colors
-        shape.sprite.enabled = true;
-        if (shape.colorMode == ShapeColorMode.AverageColorFromTexture &&
-             ShapeManager.Instance.AverageColorMask &&
-            (ShapeManager.Instance.ApplyAverageToVariants || !shape.hasSetColor))
-        {
-            screenshotolors = GetShapeColorsAsAverageFromTarget(shape);
-        }
-        else
-        {
-            _camera.cullingMask = everythingLayerMask;
-            _camera.backgroundColor = bg_color;
-
-            sc = TakeScreenshot(sc);
-            screenshotolors = sc.GetPixelData<Color32>(MipMapLevel);
-        }
-        #endregion
-
-        // Calculate color difference
-        int difference = GetTextureDifference();
-
-        shape.score = difference;
-        shape.sprite.enabled = false;
-        return difference;*/
     }
 
     private int GetTextureDifference()
@@ -207,11 +179,108 @@ public class CameraManager : Singleton<CameraManager>
     }
 
     /// <summary>
+    /// Sets targetColors[] with pixels from TextureToSimilate.
+    /// targetColors isnt used much, but its needed for bg color and random shape colors
+    /// </summary>
+    private void GetTargetPixelColors()
+    {
+        Debug.Log("getting target pixel colors");
+        NativeArray<Color32> temp = EvolutionManager.Instance.TextureToSimulate.GetPixelData<Color32>(MipMapLevel);
+        targetColors = new Color32[temp.Length];
+
+        for (int i = 0; i < temp.Length; i++)
+        {
+            targetColors[i] = temp[i];
+        }
+    }
+
+    public void UpdateBackgroundColors()
+    {
+        bg_color = StaticUtilites.AverageTextureColor(EvolutionManager.Instance.TextureToSimulate);
+
+        Camera[] cameras = FindObjectsOfType<Camera>();
+        foreach(Camera cam in cameras) 
+            if(cam != _camera)
+                cam.backgroundColor = bg_color;
+
+        _camera.backgroundColor = bg_color;
+        //OnShapeCreated();
+    }
+
+    private void UpdateSizeToMatchImage()
+    {
+        differenceMaterial.SetTexture("_Texture", EvolutionManager.Instance.TextureToSimulate);
+
+        renderTexture.Release();
+        renderTexture.width = EvolutionManager.Instance.TextureToSimulate.width;
+        renderTexture.height = EvolutionManager.Instance.TextureToSimulate.height;
+        renderTexture.Create();
+        //renderTexture.format = (RenderTextureFormat)(System.Enum.Parse(typeof(RenderTextureFormat), EvolutionManager.Instance.TextureToSimulate.format.ToString()));
+    }
+
+    #region obsolete
+
+    [System.Obsolete]
+    public int CalculateScoreWithScreenshot()
+    {
+        //double t = Time.realtimeSinceStartupAsDouble;
+
+        sc = TakeScreenshot(sc);
+        //colorDifferenceSum = Vector3.zero;
+        colorDifferenceSum = 0;
+
+        screenshotolors = sc.GetPixelData<Color32>(MipMapLevel);
+
+        int difference = GetTextureDifference();
+
+        return difference;
+    }
+
+    [System.Obsolete]
+    public int CalculateScoreWithScreenshot(Shape shape)
+    {
+        if (shape.score > -1)
+            return shape.score;
+
+        #region get screenshot colors
+        shape.sprite.enabled = true;
+        if (shape.colorMode == ShapeColorMode.AverageColorFromTexture &&
+             ShapeManager.Instance.AverageColorMask &&
+            (ShapeManager.Instance.ApplyAverageToVariants || !shape.hasSetColor))
+        {
+            screenshotolors = GetShapeColorsAsAverageFromTarget(shape);
+        }
+        else
+        {
+            _camera.cullingMask = everythingLayerMask;
+            _camera.backgroundColor = bg_color;
+
+            sc = TakeScreenshot(sc);
+            screenshotolors = sc.GetPixelData<Color32>(MipMapLevel);
+        }
+        #endregion
+
+        // Calculate color difference
+        int difference = GetTextureDifference();
+
+        shape.score = difference;
+        shape.sprite.enabled = false;
+        return difference;
+    }
+
+    [System.Obsolete]
+    void SetRandomBackgroundColor()
+    {
+        _camera.backgroundColor = new Color(Random.value, Random.value, Random.value);
+    }
+
+    /// <summary>
     /// Find average color of area that shape encapsulates
     /// also returns screen pixels 
     /// </summary>
     /// <param name="currentShape"></param>
     /// <returns></returns>
+    [System.Obsolete]
     private NativeArray<Color32> GetShapeColorsAsAverageFromTarget(Shape currentShape)
     {
         /*
@@ -230,10 +299,10 @@ public class CameraManager : Singleton<CameraManager>
         Vector4 sum = Vector4.zero;
         float count = 0;
         Vector2Int topLeftIndex = new Vector2Int(sc.width, sc.height); /* new optimization: make this a function, do a big binary-esc search */
-        Vector2Int bottomRightIndex = new Vector2Int(0,0);
+        Vector2Int bottomRightIndex = new Vector2Int(0, 0);
 
         //find when screenshot is different from current
-        for (int i = index_offset; i < screenshotolors.Length; i+=precision)
+        for (int i = index_offset; i < screenshotolors.Length; i += precision)
         {
             if (screenshotolors[i].r > 0)
             {
@@ -262,56 +331,11 @@ public class CameraManager : Singleton<CameraManager>
                 screenshotolors[i] = Color.Lerp(currentStateColors[i], avg_color, screenshotolors[i].r);
         }
 
-        avg_color.a = (byte)currentOpacity;   
+        avg_color.a = (byte)currentOpacity;
         currentShape.SetColor(avg_color);
         return screenshotolors;
     }
 
-    public void UpdateBackgroundColors()
-    {
-        bg_color = StaticUtilites.AverageTextureColor(EvolutionManager.Instance.TextureToSimulate);
-
-        Camera[] cameras = FindObjectsOfType<Camera>();
-        foreach(Camera cam in cameras) 
-            if(cam != _camera)
-                cam.backgroundColor = bg_color;
-
-        OnShapeCreated();
-    }
-
-    private void UpdateSizeToMatchImage()
-    {
-        differenceMaterial.SetTexture("_Texture", EvolutionManager.Instance.TextureToSimulate);
-
-        renderTexture.Release();
-        renderTexture.width = EvolutionManager.Instance.TextureToSimulate.width;
-        renderTexture.height = EvolutionManager.Instance.TextureToSimulate.height;
-        renderTexture.Create();
-        //renderTexture.format = (RenderTextureFormat)(System.Enum.Parse(typeof(RenderTextureFormat), EvolutionManager.Instance.TextureToSimulate.format.ToString()));
-    }
-
-    /// <summary>
-    /// Sets targetColors[] with pixels from TextureToSimilate
-    /// </summary>
-    private void GetTargetPixelColors()
-    {
-        Debug.Log("getting target pixel colors");
-        NativeArray<Color32> temp = EvolutionManager.Instance.TextureToSimulate.GetPixelData<Color32>(MipMapLevel);
-        targetColors = new Color32[temp.Length];
-
-        for(int i=0; i<temp.Length; i++)
-        {
-            targetColors[i] = temp[i];
-        }
-    }
-
-    #region obsolete
-
-    [System.Obsolete]
-    void SetRandomBackgroundColor()
-    {
-        _camera.backgroundColor = new Color(Random.value, Random.value, Random.value);
-    }
     #endregion
 
 }
