@@ -53,6 +53,9 @@ public class CameraManager : Singleton<CameraManager>
     private int index_offset = 0;
     private Color32 bg_color;
 
+    private Mesh quadMesh;
+
+    private Dictionary<Sprite, Mesh> spriteMeshCache = new Dictionary<Sprite, Mesh>();
     [SerializeField] ComputeShader shader;
     int kernel;
     ComputeBuffer resultBuffer;
@@ -65,13 +68,18 @@ public class CameraManager : Singleton<CameraManager>
         if (!GenerateMipMaps)
             MipMapLevel = 0;
 
+        //InitQuad();
+
         kernel = shader.FindKernel("CSMain");
         resultBuffer = new ComputeBuffer(1, sizeof(uint));
 
         _camera = GetComponent<Camera>();
 
         //currentState = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGBA32, GenerateMipMaps);
-        currentState = new Texture2D(renderTexture.width, renderTexture.height, EvolutionManager.Instance.TextureToSimulate.format, GenerateMipMaps);
+        //currentState = new Texture2D(renderTexture.width, renderTexture.height, EvolutionManager.Instance.TextureToSimulate.format, GenerateMipMaps);
+
+        //renderTexture.enableRandomWrite = true;
+        //renderTexture.Create();
 
         if (!ShapeManager.Instance.AverageColorMask)
         { 
@@ -119,12 +127,25 @@ public class CameraManager : Singleton<CameraManager>
         if (shape.score > -1)
             return shape.score;
 
-        _camera.cullingMask = everythingLayerMask;
-        _camera.backgroundColor = bg_color;
-
         shape.sprite.enabled = true;
 
         _camera.Render();
+
+        /*RenderTexture.active = renderTexture;
+        GL.Clear(true, true, bg_color);
+
+        GL.PushMatrix();
+        GL.LoadOrtho(); // interpret mesh coords in [0..1] space
+
+        Material mat = shape.sprite.material;
+        mat.SetColor("_Color", shape.sprite.color);
+        mat.SetPass(0);
+
+        Mesh spriteMesh = GetOrCreateMesh(shape.sprite.sprite);
+        Graphics.DrawMeshNow(spriteMesh, GetTRSMatrix(shape));
+
+        GL.PopMatrix();
+        RenderTexture.active = null;*/
 
         resultBuffer.SetData(new uint[1]); // reset
 
@@ -136,7 +157,7 @@ public class CameraManager : Singleton<CameraManager>
         int threadGroupsY = EvolutionManager.Instance.TextureToSimulate.height / 8;
         shader.Dispatch(kernel, threadGroupsX, threadGroupsY, 1);
 
-        resultBuffer.GetData(resultArray); // just one int
+        resultBuffer.GetData(resultArray); // just one int man just one more int
         shape.score = (int)resultArray[0];
         shape.sprite.enabled = false;
 
@@ -204,6 +225,18 @@ public class CameraManager : Singleton<CameraManager>
         _camera.Render();
         outputTexture = StaticUtilites.TakeScreenshot(renderTexture, outputTexture);
         return outputTexture;
+    }
+
+    Matrix4x4 GetTRSMatrix(Shape shape)
+    {
+        Vector3 pos = shape.transform.position;
+
+        Vector3 scale = new Vector3(
+            shape.transform.localScale.x / CameraWidthWorldSpace,
+            shape.transform.localScale.y / CameraHeightWorldSpace,
+            1f);
+
+        return Matrix4x4.TRS(shape.calculatedPositionNormalized, shape.transform.rotation, scale);
     }
 
     /// <summary>
@@ -303,6 +336,46 @@ public class CameraManager : Singleton<CameraManager>
         {
             targetColors[i] = temp[i];
         }
+    }
+
+    void InitQuad()
+    {
+        quadMesh = new Mesh();
+        quadMesh.vertices = new Vector3[]
+        {
+            new Vector3(0,0,0),
+            new Vector3(1,0,0),
+            new Vector3(0,1,0),
+            new Vector3(1,1,0)
+        };
+        quadMesh.uv = new Vector2[]
+        {
+            new Vector2(0,0),
+            new Vector2(1,0),
+            new Vector2(0,1),
+            new Vector2(1,1)
+        };
+        quadMesh.triangles = new int[] { 0, 2, 1, 2, 3, 1 };
+    }
+
+    Mesh GetOrCreateMesh(Sprite sprite)
+    {
+        if (!spriteMeshCache.TryGetValue(sprite, out Mesh mesh))
+        {
+            mesh = new Mesh();
+            mesh.vertices = new Vector3[]
+            {
+            new Vector3(0,0,0),
+            new Vector3(1,0,0),
+            new Vector3(0,1,0),
+            new Vector3(1,1,0)
+            };
+            mesh.uv = sprite.uv;
+            mesh.triangles = new int[] { 0, 2, 1, 2, 3, 1 };
+
+            spriteMeshCache[sprite] = mesh;
+        }
+        return mesh;
     }
 
     #region obsolete

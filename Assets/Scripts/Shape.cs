@@ -23,6 +23,7 @@ public class Shape : MonoBehaviour
     [HideInInspector] public bool hasSetColor = false;
     [HideInInspector] public int variantLevel;
     public float a => sprite.color.a;
+    public Vector2 calculatedPositionNormalized;
 
     //calculation variables
     static int colorModeIndex;
@@ -133,6 +134,8 @@ public class Shape : MonoBehaviour
         Vector2 randomPos = new Vector3(x, y) ;
 
         Vector2 newPos = Vector3.Lerp (transform.position, randomPos, intensityScalar);
+
+        calculatedPositionNormalized = new Vector2(newPos.x / CameraManager.CameraWidthWorldSpace, newPos.y / CameraManager.CameraHeightWorldSpace);
 
         if (false && hasSetPosition)
         {
