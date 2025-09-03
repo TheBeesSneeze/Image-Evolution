@@ -3,9 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Unity.Collections;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.SocialPlatforms.Impl;
 using UnityEngine.UI;
+using static UnityEngine.GraphicsBuffer;
 public class CameraManager : Singleton<CameraManager>
 {
     [Header("Settings")]
@@ -51,12 +53,20 @@ public class CameraManager : Singleton<CameraManager>
     private int index_offset = 0;
     private Color32 bg_color;
 
+    [SerializeField] ComputeShader shader;
+    int kernel;
+    ComputeBuffer resultBuffer;
+    uint[] resultArray = new uint[1];
+
 
     // Start is called before the first frame update
     void Start()
     {
         if (!GenerateMipMaps)
             MipMapLevel = 0;
+
+        kernel = shader.FindKernel("CSMain");
+        resultBuffer = new ComputeBuffer(1, sizeof(uint));
 
         _camera = GetComponent<Camera>();
 
@@ -79,13 +89,13 @@ public class CameraManager : Singleton<CameraManager>
     void OnShapeCreated()
     {
         //sc = TakeScreenshot(sc);
-        index_offset = (index_offset + 1) % precision;
+        //index_offset = (index_offset + 1) % precision;
         //differenceMaterial.SetTexture("_Current_State", currentState);
 
         _camera.backgroundColor = bg_color;
         _camera.cullingMask = currentStateLayerMask;
-        currentState = TakeScreenshot(currentState);
-        currentStateColors = currentState.GetPixelData<Color32>(MipMapLevel);
+        //currentState = TakeScreenshot(currentState);
+        //currentStateColors = currentState.GetPixelData<Color32>(MipMapLevel);
         //_camera.cullingMask = candidateLayerMask;
     }
 
@@ -107,6 +117,33 @@ public class CameraManager : Singleton<CameraManager>
     public int CalculateScore(Shape shape)
     {
         if (shape.score > -1)
+            return shape.score;
+
+        _camera.cullingMask = everythingLayerMask;
+        _camera.backgroundColor = bg_color;
+
+        shape.sprite.enabled = true;
+
+        _camera.Render();
+
+        resultBuffer.SetData(new uint[1]); // reset
+
+        shader.SetTexture(kernel, "Target", EvolutionManager.Instance.TextureToSimulate);
+        shader.SetTexture(kernel, "Current", renderTexture);
+        shader.SetBuffer(kernel, "Result", resultBuffer);
+
+        int threadGroupsX = EvolutionManager.Instance.TextureToSimulate.width / 8;
+        int threadGroupsY = EvolutionManager.Instance.TextureToSimulate.height / 8;
+        shader.Dispatch(kernel, threadGroupsX, threadGroupsY, 1);
+
+        resultBuffer.GetData(resultArray); // just one int
+        shape.score = (int)resultArray[0];
+        shape.sprite.enabled = false;
+
+
+        return shape.score;
+
+        /*if (shape.score > -1)
             return shape.score;
 
         #region get screenshot colors
@@ -132,7 +169,7 @@ public class CameraManager : Singleton<CameraManager>
 
         shape.score = difference;
         shape.sprite.enabled = false;
-        return difference;
+        return difference;*/
     }
 
     private int GetTextureDifference()

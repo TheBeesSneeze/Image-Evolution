@@ -219,7 +219,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3f77e496e91ada4db364e6adf857f50, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  resolution: 128
+  resolution: 512
   precision: 1
   useMaxColor: 1
   _camera: {fileID: 0}
@@ -239,6 +239,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 192
   targetColors: []
+  shader: {fileID: 7200000, guid: 147b56cebd09eda4aa2a6b14cdecc525, type: 3}
 --- !u!1 &53914131
 GameObject:
   m_ObjectHideFlags: 0
@@ -487,7 +488,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7af88db29df7906408ec50a5bd40e694, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TextureToSimulate: {fileID: 2800000, guid: 05f54fc4dda4c9d44999ddc203bb2320, type: 3}
+  TextureToSimulate: {fileID: 2800000, guid: f17ea528c6320734888fb3e3e4ac66c8, type: 3}
   OnRefreshImage:
     m_PersistentCalls:
       m_Calls: []

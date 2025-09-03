@@ -1,0 +1,17 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+Texture2D<float4> Target;
+Texture2D<float4> Current;
+RWStructuredBuffer<uint> Result; // 1 element
+
+[numthreads(8, 8, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    float4 t = Target[id.xy];
+    float4 c = Current[id.xy];
+
+    float diff = max(max(abs(t.r - c.r), abs(t.g - c.g)), abs(t.b - c.b));
+
+    InterlockedAdd(Result[0], (uint) (diff * 255.0));
+}

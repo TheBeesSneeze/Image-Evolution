@@ -36,6 +36,7 @@ public class ShapePoolManager : Singleton<ShapePoolManager>
         newShape.Initialize();
         newShape.CopyShape(shape);
         newShape.inUse = true;
+        newShape.sprite.enabled = false;
         return newShape;
     }
 
@@ -54,6 +55,7 @@ public class ShapePoolManager : Singleton<ShapePoolManager>
         newShape.transform.rotation = rotation;
         newShape.Initialize();
         newShape.inUse = true;
+        newShape.sprite.enabled = false;
         return newShape;
     }
 

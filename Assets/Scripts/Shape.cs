@@ -298,7 +298,7 @@ public class Shape : MonoBehaviour
         ShapeManager.OnShapeSelected.Invoke(); // to get current state
         sprite.enabled = true;
         CameraManager.Instance.CalculateScore(this);
-        sprite.enabled = true;
+        sprite.enabled = false;
         gameObject.layer = 7;
     }
 

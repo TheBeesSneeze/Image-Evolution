@@ -1,12 +1,13 @@
 using NaughtyAttributes;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using System.Threading.Tasks;
-using UnityEngine.Events;
-using TMPro;
 using System.Reflection;
+using System.Threading.Tasks;
+using TMPro;
 using Unity.VisualScripting;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.Events;
 
 public class ShapeManager : Singleton<ShapeManager>
 {
@@ -308,6 +309,8 @@ public class ShapeManager : Singleton<ShapeManager>
         for (int i = 0; i < shapes.Count; i++)
         {
             CameraManager.Instance.CalculateScore(shapes[i]);
+            //EditorApplication.isPaused = true;
+
         }
         //Debug.Log((Time.unscaledTime - t) + " seconds to score " + shapes.Count + " shapes");
     }
