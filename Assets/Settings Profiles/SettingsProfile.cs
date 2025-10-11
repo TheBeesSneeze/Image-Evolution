@@ -62,4 +62,27 @@ public class SettingsProfile : ScriptableObject
     [Header("Sprites")]
     [SerializeField] public List<Sprite> shapeSprites;
 
+    #region Debug Stats
+    public Dictionary<Sprite, int> IconUseCounts;
+
+    //TODO: sort by sprite name btn
+
+    //TODO: sort by sprite use counts btn
+
+    [Button]
+    public void UpdateIconUsageStats()
+    {
+        // add and remove guys
+    }
+
+    [Button]
+    public void ResetIconUsageStats()
+    {
+        IconUseCounts = new();
+        for (int i = 0; i < shapeSprites.Count; i++)
+        {
+            IconUseCounts.Add(shapeSprites[i], 0);
+        }
+    }
+    #endregion
 }

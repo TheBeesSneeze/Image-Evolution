@@ -1,6 +1,8 @@
 using NaughtyAttributes;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using TMPro;
@@ -8,6 +10,7 @@ using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 public class ShapeManager : Singleton<ShapeManager>
 {
@@ -56,9 +59,12 @@ public class ShapeManager : Singleton<ShapeManager>
     [HideInInspector] public static Vector2 scaledHalfSize;
 
     [Header("Debug")]
+    [SerializeField] bool DisplayIconUsage = true;
+    [SerializeField] bool DisplayGenerationCount = false;
     [ReadOnly]
     public List<Shape> shapes = new List<Shape>();
     public TMP_Text debug_text;
+    private Dictionary<Sprite, int> IconUseCounts => settingsProfile.IconUseCounts;
 
     private int bestScore = -1;
     private int currentScore = -1;
@@ -72,6 +78,13 @@ public class ShapeManager : Singleton<ShapeManager>
     private void Start()
     {
         EvolutionManager.Instance.OnRefreshImage.AddListener(SetHalfSize);
+
+        if(IconUseCounts == null)
+        {
+            settingsProfile.IconUseCounts = new();
+        }
+
+        //if(settingsProfile.IconUseCounts.Count )
 
         DebugHSDFGds();
     }
@@ -184,17 +197,48 @@ public class ShapeManager : Singleton<ShapeManager>
             OnShapeSelected.Invoke();
 
         shapesCreated++;
-
+      
         if (winner.score < bestScore)
+        {
             bestScore = winner.score;
+
+            if (IconUseCounts.ContainsKey(winner.sprite.sprite))
+                IconUseCounts[winner.sprite.sprite]++;
+            else
+                IconUseCounts[winner.sprite.sprite] = 1;
+        }
+
+        if (DisplayIconUsage && shapesCreated % 25 == 0 && shapesCreated != 0)
+        {
+            var sorted = IconUseCounts.AsEnumerable().OrderBy(i => i.Value);
+            var best = sorted.LastOrDefault();
+            var worst = sorted.FirstOrDefault();
+            Debug.Log($"Best shape: {best.Key.name}: {best.Value} uses");
+
+            var unused = IconUseCounts.Where(i => i.Value == 0);
+            if(unused.Count() > 0)
+            {
+                var unusedList = String.Join("\n", unused.Select(i => i.Key.name));
+                Debug.Log($"There are {unused.Count()} unused sprites:\n{unusedList}");
+            }
+            else
+            {
+                Debug.Log($"Worst shape: {worst.Key.name}: {worst.Value} uses");
+            }
+
+        }
+
         currentScore = winner.score;
 
-
         winner.gameObject.name = winner.sprite.sprite.name;
-        Debug.Log("Stopped after " + i + " generations...\n" +
+
+        if(DisplayGenerationCount)
+        {
+            Debug.Log("Stopped after " + i + " generations...\n" +
                   "Shape variant level: " + winner.variantLevel + "\n" +
                   "Shape color type: " + winner.colorMode.ToString() + "\n" +
                   "Sprite: " + winner.sprite.sprite.name);
+        }     
 
         return winner;
     }
@@ -214,7 +258,7 @@ public class ShapeManager : Singleton<ShapeManager>
     private void IncreaseStandards()
     {
         // settingsProfile is a copy of the original, so modifying it is ok
-        int statToIncrease = Random.Range(0, 6);
+        int statToIncrease = UnityEngine.Random.Range(0, 6);
 
         switch(statToIncrease)
         {
