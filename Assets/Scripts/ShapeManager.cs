@@ -79,6 +79,7 @@ public class ShapeManager : Singleton<ShapeManager>
     {
         EvolutionManager.Instance.OnRefreshImage.AddListener(SetHalfSize);
 
+        settingsProfile.LoadFromFile();
         if(IconUseCounts == null)
         {
             settingsProfile.IconUseCounts = new();
@@ -208,24 +209,9 @@ public class ShapeManager : Singleton<ShapeManager>
                 IconUseCounts[winner.sprite.sprite] = 1;
         }
 
-        if (DisplayIconUsage && shapesCreated % 25 == 0 && shapesCreated != 0)
+        if (settingsProfile.RecordIconUseFrequency && shapesCreated % settingsProfile.debugLogFrequency == 0 && shapesCreated != 0)
         {
-            var sorted = IconUseCounts.AsEnumerable().OrderBy(i => i.Value);
-            var best = sorted.LastOrDefault();
-            var worst = sorted.FirstOrDefault();
-            Debug.Log($"Best shape: {best.Key.name}: {best.Value} uses");
-
-            var unused = IconUseCounts.Where(i => i.Value == 0);
-            if(unused.Count() > 0)
-            {
-                var unusedList = String.Join("\n", unused.Select(i => i.Key.name));
-                Debug.Log($"There are {unused.Count()} unused sprites:\n{unusedList}");
-            }
-            else
-            {
-                Debug.Log($"Worst shape: {worst.Key.name}: {worst.Value} uses");
-            }
-
+            settingsProfile.PrintUsageStats();
         }
 
         currentScore = winner.score;
@@ -518,6 +504,14 @@ public class ShapeManager : Singleton<ShapeManager>
 
     #region debug
 
+    private void OnDestroy()
+    {
+        if (settingsProfile.SaveToFileOnSessionEnd)
+        {
+            settingsProfile.SaveToFile();
+        }
+    }
+
     private void PrintAllShapeScores()
     {
         string output = "";
@@ -528,6 +522,9 @@ public class ShapeManager : Singleton<ShapeManager>
         Debug.Log(output);
     }
 
+    /// <summary>
+    /// Variant: depth of natural selection variations (how far down the cousin tree)
+    /// </summary>
     private void PrintHighestVariant()
     {
         int highest = 0;
@@ -538,7 +535,6 @@ public class ShapeManager : Singleton<ShapeManager>
         }
         Debug.Log("highest variant level: " + highest);
     }
-
 
     #endregion
 

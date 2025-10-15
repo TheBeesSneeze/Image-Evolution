@@ -1,7 +1,12 @@
 using NaughtyAttributes;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using UnityEditor;
 using UnityEngine;
+using static UnityEngine.Rendering.DebugUI;
 
 [CreateAssetMenu(fileName = "Settings Profile", menuName = "ScriptableObjects/Settings Profile")]
 public class SettingsProfile : ScriptableObject
@@ -63,25 +68,108 @@ public class SettingsProfile : ScriptableObject
     [SerializeField] public List<Sprite> shapeSprites;
 
     #region Debug Stats
-    public Dictionary<Sprite, int> IconUseCounts;
+    //public Dictionary<Sprite, int> IconUseCounts;
+    [Header("Debug")]
+    [Foldout("Debug"), ShowIf(nameof(RecordIconUseFrequency))] public bool SaveToFileOnSessionEnd = true;
+    [Foldout("Debug"), ShowIf(nameof(RecordIconUseFrequency))] public Dictionary<Sprite, int> IconUseCounts;
+    [Foldout("Debug"), ShowIf(nameof(RecordIconUseFrequency))] [SerializeField] private TextAsset dataFile;
+    [Tooltip("How many shapes until icon use stats are auto-printed")]
+    [Foldout("Debug"), ShowIf(nameof(RecordIconUseFrequency))] public int debugLogFrequency=15;
+    [Foldout("Debug")] public bool RecordIconUseFrequency = true;
+
+    /// <summary>
+    /// Loads IconUseCounts dictionary from json file
+    /// </summary>
+    [Button]
+    public void LoadFromFile()
+    {
+        if (!RecordIconUseFrequency)
+            return;
+
+        if (dataFile == null)
+        {
+            Debug.LogWarning("No save file is present to load");
+            IconUseCounts = new();
+            return;
+        }
+
+        var stringUseCounts = JsonUtility.FromJson<SerializableDictionary<string, int>>(dataFile.text)
+                                    .ToDictionary();
+        foreach (Sprite sprite in shapeSprites)
+        {
+            if (!stringUseCounts.ContainsKey(sprite.name))
+                stringUseCounts[sprite.name] = 0;
+        }
+
+        IconUseCounts = shapeSprites.Zip(stringUseCounts.Values, (key, value) => new { key, value })
+                                    .ToDictionary(item => item.key, item => stringUseCounts[item.key.name]);
+
+        Debug.Log("Successfully loaded sprite data!");
+    }
+
+    /// <summary>
+    /// Saves IconUseCounts dictionary to json file
+    /// </summary>
+    [Button]
+    public void SaveToFile()
+    {
+        if (!RecordIconUseFrequency)
+            return;
+
+        Dictionary<string, int> stringUseCounts = IconUseCounts.ToDictionary(item => item.Key.name, item => item.Value);
+
+        Debug.Log(IconUseCounts.Count);
+        Debug.Log(stringUseCounts.Count);
+
+        string elemString = JsonUtility.ToJson(new SerializableDictionary<string,int>( stringUseCounts));
+        string path = AssetDatabase.GetAssetPath(dataFile);
+
+        //var textFile = File.CreateText(path);
+
+        //textFile.WriteLine(elemString);
+
+        Debug.Log($"Overwriting save file at {path}");
+        Debug.Log(elemString);
+
+        File.WriteAllText(path, elemString);
+        AssetDatabase.Refresh();
+    }
 
     //TODO: sort by sprite name btn
 
     //TODO: sort by sprite use counts btn
 
     [Button]
-    public void UpdateIconUsageStats()
+    public void ClearUsageStats()
     {
-        // add and remove guys
-    }
+        if (!RecordIconUseFrequency)
+            return;
 
-    [Button]
-    public void ResetIconUsageStats()
-    {
         IconUseCounts = new();
         for (int i = 0; i < shapeSprites.Count; i++)
         {
             IconUseCounts.Add(shapeSprites[i], 0);
+        }
+        SaveToFile();
+    }
+
+    [Button]
+    public void PrintUsageStats()
+    {
+        var sorted = IconUseCounts.AsEnumerable().OrderBy(i => i.Value);
+        var best = sorted.LastOrDefault();
+        var worst = sorted.FirstOrDefault();
+        Debug.Log($"Best shape: {best.Key.name}: {best.Value} uses");
+
+        var unused = IconUseCounts.Where(i => i.Value == 0);
+        if (unused.Count() > 0)
+        {
+            var unusedList = String.Join("\n", unused.Select(i => i.Key.name));
+            Debug.Log($"There are {unused.Count()} unused sprites:\n{unusedList}");
+        }
+        else
+        {
+            Debug.Log($"Worst shape: {worst.Key.name}: {worst.Value} uses");
         }
     }
     #endregion
