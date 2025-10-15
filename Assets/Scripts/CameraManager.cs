@@ -15,7 +15,6 @@ public class CameraManager : Singleton<CameraManager>
     [SerializeField] private int precision = 2;
     [SerializeField] private bool useMaxColor = true;
 
-
     public static float CameraHeightWorldSpace => Instance._camera.orthographicSize * 2;
     public static float CameraWidthWorldSpace => CameraHeightWorldSpace * Instance._camera.aspect;
 
@@ -184,12 +183,14 @@ public class CameraManager : Singleton<CameraManager>
 
     private void UpdateSizeToMatchImage()
     {
-        differenceMaterial.SetTexture("_Texture", EvolutionManager.Instance.TextureToSimulate);
 
         renderTexture.Release();
         renderTexture.width = EvolutionManager.Instance.TextureToSimulate.width;
         renderTexture.height = EvolutionManager.Instance.TextureToSimulate.height;
         renderTexture.Create();
+
+        differenceMaterial.SetTexture("_Target", EvolutionManager.Instance.TextureToSimulate);
+        differenceMaterial.SetTexture("_Current_State", renderTexture);
         //renderTexture.format = (RenderTextureFormat)(System.Enum.Parse(typeof(RenderTextureFormat), EvolutionManager.Instance.TextureToSimulate.format.ToString()));
     }
 

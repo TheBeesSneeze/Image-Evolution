@@ -105,6 +105,7 @@ public class SettingsProfile : ScriptableObject
                                     .ToDictionary(item => item.key, item => stringUseCounts[item.key.name]);
 
         Debug.Log("Successfully loaded sprite data!");
+        PrintUsageStats();  
     }
 
     /// <summary>

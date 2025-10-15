@@ -44,7 +44,7 @@ public class StatsDisplay : MonoBehaviour
 
     void UpdateTimeText()
     {
-        TimeDisplayText.text = StaticUtilites.RoundToNPlaces(Time.realtimeSinceStartup - timeOfLastShape, 2).ToString();
+        TimeDisplayText.text = StaticUtilites.RoundToNPlaces(Time.realtimeSinceStartup - timeOfLastShape, 2).ToString()+"s";
         timeOfLastShape = Time.realtimeSinceStartup;
     }
 }

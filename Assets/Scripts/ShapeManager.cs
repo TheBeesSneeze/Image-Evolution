@@ -54,6 +54,7 @@ public class ShapeManager : Singleton<ShapeManager>
 
     public static UnityEvent OnShapeSelected = new UnityEvent();
     public static UnityEvent OnShapeFailed = new UnityEvent();
+    public static UnityEvent OnAnyShapeCreated = new UnityEvent();
 
     [HideInInspector] public static Vector2 halfsize;
     [HideInInspector] public static Vector2 scaledHalfSize;
@@ -198,7 +199,9 @@ public class ShapeManager : Singleton<ShapeManager>
             OnShapeSelected.Invoke();
 
         shapesCreated++;
-      
+        OnAnyShapeCreated.Invoke();
+
+
         if (winner.score < bestScore)
         {
             bestScore = winner.score;

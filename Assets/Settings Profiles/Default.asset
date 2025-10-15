@@ -109,3 +109,5 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 5a464d43777cea548b8a5c90503516ec, type: 3}
   SaveToFileOnSessionEnd: 1
   dataFile: {fileID: 4900000, guid: 5c12234dfe75263499efca71c1e524c7, type: 3}
+  debugLogFrequency: 35
+  RecordIconUseFrequency: 1
