@@ -50,6 +50,7 @@ Material:
     - _Exaggeration: 0.2
     m_Colors: []
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!114 &2731078150040275648
 MonoBehaviour:
   m_ObjectHideFlags: 11

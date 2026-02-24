@@ -1,11 +1,13 @@
 using NaughtyAttributes;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Unity.Collections;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SocialPlatforms.Impl;
+using UnityEngine.U2D;
 using UnityEngine.UI;
 using static UnityEngine.GraphicsBuffer;
 public class CameraManager : Singleton<CameraManager>
@@ -33,13 +35,14 @@ public class CameraManager : Singleton<CameraManager>
     [SerializeField]
     private RawImage debugImage;
 
-    [SerializeField] [Layer] public int currentStateLayer;
-    [SerializeField] [Layer] public int candidateLayer;
+    [SerializeField][Layer] public int currentStateLayer;
+    [SerializeField][Layer] public int candidateLayer;
 
     [SerializeField]
     private LayerMask currentStateLayerMask, candidateLayerMask, everythingLayerMask;
 
     private Texture2D sc;
+    private Camera[] cameras;
 
     // calculation variables
     // TODO: many of these variables arent used / obsolete
@@ -69,7 +72,7 @@ public class CameraManager : Singleton<CameraManager>
         //currentState = new Texture2D(renderTexture.width, renderTexture.height, EvolutionManager.Instance.TextureToSimulate.format, GenerateMipMaps);
 
         if (!ShapeManager.Instance.AverageColorMask)
-        { 
+        {
             _camera.cullingMask = everythingLayerMask;
             _camera.backgroundColor = bg_color;
         }
@@ -104,7 +107,7 @@ public class CameraManager : Singleton<CameraManager>
 
     public int CalculateScore(Shape shape)
     {
-        if(shape == null)
+        if (shape == null)
         {
             Debug.LogWarning("Shape is null");
             return CalculateScore();
@@ -141,12 +144,12 @@ public class CameraManager : Singleton<CameraManager>
     public Texture2D TakeScreenshot(Texture2D outputTexture)
     {
         Debug.Log("taking a screenshot. avoid calling this function often");
-        if(outputTexture == null)
+        if (outputTexture == null)
         {
             Debug.Log("initalizing screenshot texture");
             outputTexture = StaticUtilites.TakeScreenshot(renderTexture, GenerateMipMaps);
         }
-        
+
         _camera.Render();
         outputTexture = StaticUtilites.TakeScreenshot(renderTexture, outputTexture);
         return outputTexture;
@@ -172,7 +175,9 @@ public class CameraManager : Singleton<CameraManager>
     {
         bg_color = StaticUtilites.AverageTextureColor(EvolutionManager.Instance.TextureToSimulate);
 
-        Camera[] cameras = FindObjectsOfType<Camera>();
+        if (cameras == null || cameras.Length == 0)
+            cameras = FindObjectsByType<Camera>(FindObjectsSortMode.None).Select(c=>c.GetComponent<Camera>()).ToArray();
+
         foreach(Camera cam in cameras) 
             if(cam != _camera)
                 cam.backgroundColor = bg_color;
@@ -183,7 +188,6 @@ public class CameraManager : Singleton<CameraManager>
 
     private void UpdateSizeToMatchImage()
     {
-
         renderTexture.Release();
         renderTexture.width = EvolutionManager.Instance.TextureToSimulate.width;
         renderTexture.height = EvolutionManager.Instance.TextureToSimulate.height;

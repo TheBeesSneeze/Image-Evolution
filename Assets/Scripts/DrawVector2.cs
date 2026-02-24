@@ -50,7 +50,7 @@ public static class DrawVector2
     }
     public static void Velocity(Rigidbody2D rb, Color color)
     {
-        Debug.DrawLine(rb.position, rb.position + rb.velocity, color);
+        Debug.DrawLine(rb.position, rb.position + rb.linearVelocity, color);
     }
 
     #region Direction

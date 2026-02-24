@@ -52,6 +52,8 @@ public class ShapeManager : Singleton<ShapeManager>
 
     #endregion
 
+    [SerializeField, Layer] private int selectedShapeLayer;
+
     public static UnityEvent OnShapeSelected = new UnityEvent();
     public static UnityEvent OnShapeFailed = new UnityEvent();
     public static UnityEvent OnAnyShapeCreated = new UnityEvent();
@@ -220,8 +222,9 @@ public class ShapeManager : Singleton<ShapeManager>
         currentScore = winner.score;
 
         winner.gameObject.name = winner.sprite.sprite.name;
+        winner.gameObject.layer = selectedShapeLayer;
 
-        if(DisplayGenerationCount)
+        if (DisplayGenerationCount)
         {
             Debug.Log("Stopped after " + i + " generations...\n" +
                   "Shape variant level: " + winner.variantLevel + "\n" +
