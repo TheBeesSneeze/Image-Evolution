@@ -65,7 +65,7 @@ public class SettingsProfile : ScriptableObject
     public int MaxZOrder = 100;
 
     [Header("Sprites")]
-    [SerializeField] public List<Sprite> shapeSprites;
+    [SerializeField, ShowAssetPreview(32,32), AllowNesting] public List<Sprite> shapeSprites;
 
     #region Debug Stats
     //public Dictionary<Sprite, int> IconUseCounts;
@@ -114,6 +114,7 @@ public class SettingsProfile : ScriptableObject
     [Button]
     public void SaveToFile()
     {
+#if UNITY_EDITOR
         if (!RecordIconUseFrequency)
             return;
 
@@ -134,6 +135,7 @@ public class SettingsProfile : ScriptableObject
 
         File.WriteAllText(path, elemString);
         AssetDatabase.Refresh();
+#endif
     }
 
     //TODO: sort by sprite name btn
@@ -173,5 +175,5 @@ public class SettingsProfile : ScriptableObject
             Debug.Log($"Worst shape: {worst.Key.name}: {worst.Value} uses");
         }
     }
-    #endregion
+#endregion
 }

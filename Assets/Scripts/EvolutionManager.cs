@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.SceneManagement;
 
 public class EvolutionManager : Singleton<EvolutionManager>
 {
@@ -48,6 +49,10 @@ public class EvolutionManager : Singleton<EvolutionManager>
         if (!started)
             return;
 
+        if(Input.GetKeyDown(KeyCode.R))
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
     }
 
     public static Color GetRandomColorFromTargetTexture()

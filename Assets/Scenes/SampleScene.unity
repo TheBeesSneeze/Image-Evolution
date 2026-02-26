@@ -176,7 +176,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 192
+    m_Bits: 64
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 8400000, guid: 613a85d25c2b04541b992f11ff501f77, type: 2}
   m_TargetDisplay: 0
@@ -227,7 +227,7 @@ MonoBehaviour:
   candidateLayer: 6
   currentStateLayerMask:
     serializedVersion: 2
-    m_Bits: 128
+    m_Bits: 192
   candidateLayerMask:
     serializedVersion: 2
     m_Bits: 64
@@ -492,8 +492,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7af88db29df7906408ec50a5bd40e694, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TextureToSimulate: {fileID: 2800000, guid: 27d56ffb2e0ca9a44bcbbe737351f807, type: 3}
-  settingsProfile: {fileID: 11400000, guid: 55f31a01cbeac6b4abbdef9f9a23ef3f, type: 2}
+  TextureToSimulate: {fileID: 2800000, guid: 1a96f09d01133e740981a604cd0b992c, type: 3}
+  settingsProfile: {fileID: 11400000, guid: 863f224982f9c19479394201f4a24dfe, type: 2}
   OnRefreshImage:
     m_PersistentCalls:
       m_Calls: []
@@ -734,8 +734,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 25.92
-  m_fontSizeBase: 25.92
+  m_fontSize: 20
+  m_fontSizeBase: 20
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -891,8 +891,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 16
-  m_fontSizeBase: 16
+  m_fontSize: 12
+  m_fontSizeBase: 12
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -1165,8 +1165,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 16
-  m_fontSizeBase: 16
+  m_fontSize: 12
+  m_fontSizeBase: 12
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -2338,6 +2338,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b3cb0004c71d1b4e9e81d549455108a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  selectedShapeLayer: 7
   DisplayIconUsage: 1
   DisplayGenerationCount: 0
   shapes: []
