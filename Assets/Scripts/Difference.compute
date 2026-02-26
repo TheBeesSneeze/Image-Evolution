@@ -1,17 +1,29 @@
-// Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain
 
 Texture2D<float4> Target;
 Texture2D<float4> Current;
-RWStructuredBuffer<uint> Result; // 1 element
+Texture2D<float4> CandidateShape;
+RWStructuredBuffer<uint> Result;
 
 [numthreads(8, 8, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
-    float4 t = Target[id.xy];
-    float4 c = Current[id.xy];
+    uint width, height;
+    Target.GetDimensions(width, height);
 
-    float diff = max(max(abs(t.r - c.r), abs(t.g - c.g)), abs(t.b - c.b));
+    //if (id.x >= width || id.y >= height)
+    //    return;
+
+    float4 t = Target[id.xy];
+
+    float3 blended =
+        lerp(Current[id.xy].rgb,
+             CandidateShape[id.xy].rgb,
+             CandidateShape[id.xy].a);
+
+    float diff = max(max(abs(t.r - blended.r),
+                         abs(t.g - blended.g)),
+                         abs(t.b - blended.b));
 
     InterlockedAdd(Result[0], (uint) (diff * 255.0));
 }

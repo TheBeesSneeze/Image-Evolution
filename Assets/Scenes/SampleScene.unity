@@ -176,7 +176,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 192
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 8400000, guid: 613a85d25c2b04541b992f11ff501f77, type: 2}
   m_TargetDisplay: 0
@@ -223,19 +223,21 @@ MonoBehaviour:
   MipMapLevel: 0
   differenceMaterial: {fileID: 2100000, guid: 69e2c8180eb562748a07d5c1b89d4f23, type: 2}
   debugImage: {fileID: 0}
-  currentStateLayer: 7
+  currentStateLayer: 6
   candidateLayer: 6
   currentStateLayerMask:
     serializedVersion: 2
-    m_Bits: 192
+    m_Bits: 64
   candidateLayerMask:
     serializedVersion: 2
     m_Bits: 64
   everythingLayerMask:
     serializedVersion: 2
-    m_Bits: 192
+    m_Bits: 64
   targetColors: []
-  shader: {fileID: 7200000, guid: 147b56cebd09eda4aa2a6b14cdecc525, type: 3}
+  differenceComputeShader: {fileID: 7200000, guid: 147b56cebd09eda4aa2a6b14cdecc525, type: 3}
+  outputImageShader: {fileID: 2100000, guid: 7606c8293d3380346bac9e12ac6e0975, type: 2}
+  output: {fileID: 1359519979}
 --- !u!1 &53914131
 GameObject:
   m_ObjectHideFlags: 0
@@ -493,7 +495,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TextureToSimulate: {fileID: 2800000, guid: 1a96f09d01133e740981a604cd0b992c, type: 3}
-  settingsProfile: {fileID: 11400000, guid: 863f224982f9c19479394201f4a24dfe, type: 2}
+  settingsProfile: {fileID: 11400000, guid: 55f31a01cbeac6b4abbdef9f9a23ef3f, type: 2}
   OnRefreshImage:
     m_PersistentCalls:
       m_Calls: []

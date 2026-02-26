@@ -10,6 +10,7 @@ using UnityEngine.SocialPlatforms.Impl;
 using UnityEngine.U2D;
 using UnityEngine.UI;
 using static UnityEngine.GraphicsBuffer;
+using static UnityEngine.UIElements.UxmlAttributeDescription;
 public class CameraManager : Singleton<CameraManager>
 {
     [Header("Settings")]
@@ -51,8 +52,11 @@ public class CameraManager : Singleton<CameraManager>
     private int index_offset = 0;
     private Color32 bg_color;
 
-    // later shader
-    [SerializeField] ComputeShader shader;
+    // later differenceComputeShader
+    [SerializeField] ComputeShader differenceComputeShader;
+    [SerializeField] Material outputImageShader;
+    [SerializeField] RawImage output;
+
     int kernel;
     ComputeBuffer resultBuffer;
     uint[] resultArray = new uint[1];
@@ -64,7 +68,7 @@ public class CameraManager : Singleton<CameraManager>
         if (!GenerateMipMaps)
             MipMapLevel = 0;
 
-        kernel = shader.FindKernel("CSMain");
+        kernel = differenceComputeShader.FindKernel("CSMain");
         resultBuffer = new ComputeBuffer(1, sizeof(uint));
 
         _camera = GetComponent<Camera>();
@@ -91,15 +95,18 @@ public class CameraManager : Singleton<CameraManager>
 
         _camera.Render();
 
-        resultBuffer.SetData(new uint[1]); // reset
+        // reset
+        uint zero = 0;
+        resultBuffer.SetData(new uint[] { 0 });
 
-        shader.SetTexture(kernel, "Target", EvolutionManager.Instance.TextureToSimulate);
-        shader.SetTexture(kernel, "Current", renderTexture);
-        shader.SetBuffer(kernel, "Result", resultBuffer);
+        differenceComputeShader.SetTexture(kernel, "Target", EvolutionManager.Instance.TextureToSimulate);
+        differenceComputeShader.SetTexture(kernel, "Current", output.texture);
+        differenceComputeShader.SetTexture(kernel, "CandidateShape", GetCurrentState());
+        differenceComputeShader.SetBuffer(kernel, "Result", resultBuffer);
 
         int threadGroupsX = EvolutionManager.Instance.TextureToSimulate.width / 8;
         int threadGroupsY = EvolutionManager.Instance.TextureToSimulate.height / 8;
-        shader.Dispatch(kernel, threadGroupsX, threadGroupsY, 1);
+        differenceComputeShader.Dispatch(kernel, threadGroupsX, threadGroupsY, 1);
 
         resultBuffer.GetData(resultArray); // just one int
         return (int)resultArray[0];
@@ -125,13 +132,14 @@ public class CameraManager : Singleton<CameraManager>
 
         resultBuffer.SetData(new uint[1]); // reset
 
-        shader.SetTexture(kernel, "Target", EvolutionManager.Instance.TextureToSimulate);
-        shader.SetTexture(kernel, "Current", renderTexture);
-        shader.SetBuffer(kernel, "Result", resultBuffer);
+        differenceComputeShader.SetTexture(kernel, "Target", EvolutionManager.Instance.TextureToSimulate);
+        differenceComputeShader.SetTexture(kernel, "Current", output.texture);
+        differenceComputeShader.SetTexture(kernel, "CandidateShape", GetCurrentState());
+        differenceComputeShader.SetBuffer(kernel, "Result", resultBuffer);
 
         int threadGroupsX = EvolutionManager.Instance.TextureToSimulate.width / 8;
         int threadGroupsY = EvolutionManager.Instance.TextureToSimulate.height / 8;
-        shader.Dispatch(kernel, threadGroupsX, threadGroupsY, 1);
+        differenceComputeShader.Dispatch(kernel, threadGroupsX, threadGroupsY, 1);
 
         resultBuffer.GetData(resultArray); // just one int
         shape.score = (int)resultArray[0];
@@ -140,6 +148,56 @@ public class CameraManager : Singleton<CameraManager>
 
         return shape.score;
     }
+
+    #region maybe. clean later
+
+    private RenderTexture stateA;
+    private RenderTexture stateB;
+    private bool useA = true;
+
+    public void UpdateState()
+    {
+        if (stateA == null || stateB == null)
+        {
+            stateA = new RenderTexture(EvolutionManager.Instance.TextureToSimulate.width, EvolutionManager.Instance.TextureToSimulate.height, 
+                0, RenderTextureFormat.ARGB32);
+            stateB = new RenderTexture(EvolutionManager.Instance.TextureToSimulate.width, EvolutionManager.Instance.TextureToSimulate.height, 
+                0, RenderTextureFormat.ARGB32);
+
+            stateA.Create();
+            stateB.Create();
+
+            Graphics.SetRenderTarget(stateA);
+            GL.Clear(true, true, Color.clear);
+
+            Graphics.SetRenderTarget(stateB);
+            GL.Clear(true, true, Color.clear);
+
+            Graphics.SetRenderTarget(null);
+        }
+
+        _camera.Render();
+
+        RenderTexture prev = useA ? stateA : stateB;
+        RenderTexture next = useA ? stateB : stateA;
+
+        outputImageShader.SetTexture("_PrevState", prev);
+        outputImageShader.SetTexture("_InputTex", renderTexture);
+
+        Graphics.Blit(null, next, outputImageShader);
+
+        useA = !useA;
+
+        // Update RawImage to show newest state
+        output.texture = GetCurrentState();
+    }
+
+    public RenderTexture GetCurrentState()
+    {
+        return useA ? stateA : stateB;
+    }
+
+    #endregion
 
     public Texture2D TakeScreenshot(Texture2D outputTexture)
     {
@@ -178,11 +236,19 @@ public class CameraManager : Singleton<CameraManager>
         if (cameras == null || cameras.Length == 0)
             cameras = FindObjectsByType<Camera>(FindObjectsSortMode.None).Select(c=>c.GetComponent<Camera>()).ToArray();
 
+        bg_color = Color.clear;
+
         foreach(Camera cam in cameras) 
             if(cam != _camera)
                 cam.backgroundColor = bg_color;
 
-        _camera.backgroundColor = bg_color;
+        //_camera.backgroundColor = bg_color;
+        _camera.backgroundColor = Color.clear;
+
+        UpdateState();
+
+        //var blankTexture = new Texture2D(EvolutionManager.Instance.TextureToSimulate.width, EvolutionManager.Instance.TextureToSimulate.height, UnityEngine.Experimental.Rendering.DefaultFormat.);
+        //differenceComputeShader.SetTexture(kernel, "Current", new Texture2D);
         //OnShapeCreated();
     }
 
@@ -195,6 +261,7 @@ public class CameraManager : Singleton<CameraManager>
 
         differenceMaterial.SetTexture("_Target", EvolutionManager.Instance.TextureToSimulate);
         differenceMaterial.SetTexture("_Current_State", renderTexture);
+
         //renderTexture.format = (RenderTextureFormat)(System.Enum.Parse(typeof(RenderTextureFormat), EvolutionManager.Instance.TextureToSimulate.format.ToString()));
     }
 

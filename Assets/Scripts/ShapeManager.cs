@@ -221,6 +221,9 @@ public class ShapeManager : Singleton<ShapeManager>
 
         currentScore = winner.score;
 
+        // update output texture
+        CameraManager.Instance.UpdateState();
+
         winner.gameObject.name = winner.sprite.sprite.name;
         winner.gameObject.layer = selectedShapeLayer;
 
