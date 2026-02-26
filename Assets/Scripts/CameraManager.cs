@@ -2,6 +2,7 @@ using NaughtyAttributes;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Unity.Collections;
 using UnityEditor;
@@ -9,7 +10,9 @@ using UnityEngine;
 using UnityEngine.SocialPlatforms.Impl;
 using UnityEngine.U2D;
 using UnityEngine.UI;
+using static System.Net.Mime.MediaTypeNames;
 using static UnityEngine.GraphicsBuffer;
+using static UnityEngine.Rendering.ProbeAdjustmentVolume;
 public class CameraManager : Singleton<CameraManager>
 {
     [Header("Settings")]
@@ -47,6 +50,10 @@ public class CameraManager : Singleton<CameraManager>
     // calculation variables
     // TODO: many of these variables arent used / obsolete
     [HideInInspector] public Color32[] targetColors; // move to evolution manager?
+    [HideInInspector] public Texture2D currentImageTexture;
+    [HideInInspector] public Texture2D newShapeScreenshot = null;
+    [SerializeField] private RawImage outputRawImage; 
+
     private NativeArray<Color32> screenshotolors;
     private int index_offset = 0;
     private Color32 bg_color;
@@ -81,6 +88,8 @@ public class CameraManager : Singleton<CameraManager>
         EvolutionManager.Instance.OnRefreshImage.AddListener(UpdateSizeToMatchImage);
         EvolutionManager.Instance.OnRefreshImage.AddListener(GetTargetPixelColors);
 
+        ShapeManager.OnAnyShapeCreated.AddListener(UpdateCurrentState);
+
         //ShapeManager.OnShapeSelected.AddListener(OnShapeCreated);
     }
 
@@ -91,18 +100,7 @@ public class CameraManager : Singleton<CameraManager>
 
         _camera.Render();
 
-        resultBuffer.SetData(new uint[1]); // reset
-
-        shader.SetTexture(kernel, "Target", EvolutionManager.Instance.TextureToSimulate);
-        shader.SetTexture(kernel, "Current", renderTexture);
-        shader.SetBuffer(kernel, "Result", resultBuffer);
-
-        int threadGroupsX = EvolutionManager.Instance.TextureToSimulate.width / 8;
-        int threadGroupsY = EvolutionManager.Instance.TextureToSimulate.height / 8;
-        shader.Dispatch(kernel, threadGroupsX, threadGroupsY, 1);
-
-        resultBuffer.GetData(resultArray); // just one int
-        return (int)resultArray[0];
+        return GetComputeShaderScore();
     }
 
     public int CalculateScore(Shape shape)
@@ -116,29 +114,68 @@ public class CameraManager : Singleton<CameraManager>
         if (shape.score > -1)
             return shape.score;
 
-        _camera.cullingMask = everythingLayerMask;
-        _camera.backgroundColor = bg_color;
-
         shape.sprite.enabled = true;
+        var score = CalculateScore();
 
-        _camera.Render();
+        shape.score = score;
+        shape.sprite.enabled = false;
 
+        return shape.score;
+    }
+
+    private int GetComputeShaderScore()
+    {
         resultBuffer.SetData(new uint[1]); // reset
 
         shader.SetTexture(kernel, "Target", EvolutionManager.Instance.TextureToSimulate);
-        shader.SetTexture(kernel, "Current", renderTexture);
+        shader.SetTexture(kernel, "CandidateShape", renderTexture);
+        shader.SetTexture(kernel, "Current", currentImageTexture);
         shader.SetBuffer(kernel, "Result", resultBuffer);
+
 
         int threadGroupsX = EvolutionManager.Instance.TextureToSimulate.width / 8;
         int threadGroupsY = EvolutionManager.Instance.TextureToSimulate.height / 8;
         shader.Dispatch(kernel, threadGroupsX, threadGroupsY, 1);
 
         resultBuffer.GetData(resultArray); // just one int
-        shape.score = (int)resultArray[0];
-        shape.sprite.enabled = false;
+        return (int)resultArray[0];
+    }
 
+    Color32[] sum;
 
-        return shape.score;
+    public void UpdateCurrentState(Shape newShape)
+    {
+        // apply rendertexture to overlap current state
+
+        _camera.clearFlags = CameraClearFlags.Nothing;
+        _camera.backgroundColor = Color.clear;
+
+        if (sum == null || sum.Length == 0)
+            sum = currentImageTexture.GetPixels32();
+
+        newShape.sprite.enabled = true;
+        _camera.Render();
+        Color32[] newShapeColors = StaticUtilites.GetColor32ArrayFromRenderTexture(renderTexture);
+        newShape.sprite.enabled = false;
+
+        for (int i = 0; i < sum.Length; i++) {
+            float t;
+            if (newShapeColors[i].Equals( bg_color))
+                t = 0;
+            else
+                t = newShapeColors[i].a / 255f;
+
+            sum[i] = Color32.Lerp(sum[i], newShapeColors[i], t);
+        }
+
+        currentImageTexture.SetPixels32(sum);
+        currentImageTexture.Apply(false);
+
+        //_camera.Render();
+
+        // ok back you go
+        _camera.clearFlags = CameraClearFlags.SolidColor;
+        _camera.backgroundColor = bg_color;
     }
 
     public Texture2D TakeScreenshot(Texture2D outputTexture)
@@ -147,7 +184,7 @@ public class CameraManager : Singleton<CameraManager>
         if (outputTexture == null)
         {
             Debug.Log("initalizing screenshot texture");
-            outputTexture = StaticUtilites.TakeScreenshot(renderTexture, GenerateMipMaps);
+            outputTexture = StaticUtilites.TakeScreenshot(renderTexture, false);
         }
 
         _camera.Render();
@@ -184,11 +221,23 @@ public class CameraManager : Singleton<CameraManager>
 
         _camera.backgroundColor = bg_color;
         //OnShapeCreated();
+
+
+        currentImageTexture = new Texture2D(EvolutionManager.Instance.TextureToSimulate.width, EvolutionManager.Instance.TextureToSimulate.height,
+            TextureFormat.ARGB32, false);
+
+        var fillColorArray = new Color32[EvolutionManager.Instance.TextureToSimulate.GetPixels32().Length];
+        for (var i = 0; i < fillColorArray.Length; ++i)
+            fillColorArray[i] = bg_color;
+        currentImageTexture.SetPixels32(fillColorArray);
+        currentImageTexture.Apply(false);
+        outputRawImage.texture = currentImageTexture;
     }
 
     private void UpdateSizeToMatchImage()
     {
         renderTexture.Release();
+        renderTexture.enableRandomWrite = true;
         renderTexture.width = EvolutionManager.Instance.TextureToSimulate.width;
         renderTexture.height = EvolutionManager.Instance.TextureToSimulate.height;
         renderTexture.Create();

@@ -56,7 +56,7 @@ public class ShapeManager : Singleton<ShapeManager>
 
     public static UnityEvent OnShapeSelected = new UnityEvent();
     public static UnityEvent OnShapeFailed = new UnityEvent();
-    public static UnityEvent OnAnyShapeCreated = new UnityEvent();
+    public static UnityEvent<Shape> OnAnyShapeCreated = new UnityEvent<Shape>();
 
     [HideInInspector] public static Vector2 halfsize;
     [HideInInspector] public static Vector2 scaledHalfSize;
@@ -112,7 +112,8 @@ public class ShapeManager : Singleton<ShapeManager>
     {
         while (true)
         {
-            Destroy(NaturallySelectNewShape());
+            var newGuy = NaturallySelectNewShape();
+            //Destroy(newGuy);
             //NaturallySelectNewShape();
 
             yield return null;
@@ -179,10 +180,10 @@ public class ShapeManager : Singleton<ShapeManager>
 
         if(!winner.IsUnityNull())
             winner.sprite.enabled = true;
-        winner.sprite.sortingOrder = shapesCreated + 1;
+        //winner.sprite.sortingOrder = shapesCreated + 1;
 
-        ShapePoolManager.Instance.EjectShapeFromPool(winner);
-        ShapePoolManager.Instance.RemoveAllShapes();
+        //ShapePoolManager.Instance.EjectShapeFromPool(winner);
+        ShapePoolManager.Instance.RemoveAllShapesWithException(winner);
 
         #region set score text
         if (winner.score < bestScore)
@@ -201,7 +202,7 @@ public class ShapeManager : Singleton<ShapeManager>
             OnShapeSelected.Invoke();
 
         shapesCreated++;
-        OnAnyShapeCreated.Invoke();
+        OnAnyShapeCreated.Invoke(winner);
 
 
         if (winner.score < bestScore)
@@ -221,8 +222,8 @@ public class ShapeManager : Singleton<ShapeManager>
 
         currentScore = winner.score;
 
-        winner.gameObject.name = winner.sprite.sprite.name;
-        winner.gameObject.layer = selectedShapeLayer;
+        //winner.gameObject.name = winner.sprite.sprite.name;
+        //winner.gameObject.layer = selectedShapeLayer;
 
         if (DisplayGenerationCount)
         {
@@ -231,6 +232,8 @@ public class ShapeManager : Singleton<ShapeManager>
                   "Shape color type: " + winner.colorMode.ToString() + "\n" +
                   "Sprite: " + winner.sprite.sprite.name);
         }     
+
+        ShapePoolManager.Instance.RemoveShape(winner);  
 
         return winner;
     }

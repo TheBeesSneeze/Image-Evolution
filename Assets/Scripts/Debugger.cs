@@ -31,7 +31,7 @@ public class Debugger : MonoBehaviour
         }
     }
 
-    private void UpdateDifferenceTexture()
+    private void UpdateDifferenceTexture(Shape _)
     {
         //differenceShader.SetTexture("_Current_State", CameraManager.Instance.renderTexture);
         Graphics.Blit(CameraManager.Instance.renderTexture, differenceRenderTexture, differenceShader);

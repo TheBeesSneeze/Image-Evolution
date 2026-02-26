@@ -74,6 +74,14 @@ public class ShapePoolManager : Singleton<ShapePoolManager>
         }
     }
 
+    public void RemoveAllShapesWithException(Shape specialOne)
+    {
+        foreach (Shape shape in shapes)
+        {
+            if(shape!=specialOne) RemoveShape(shape);
+        }
+    }
+
     public void EjectShapeFromPool(Shape shape)
     {
         int index = FindIndex(shape);

@@ -100,7 +100,7 @@ public static class StaticUtilites
         //if(RenderTexture.active != inputRenderTexture)
         //    RenderTexture.active = inputRenderTexture;
 
-        Texture2D texture2D = new Texture2D(inputRenderTexture.width, inputRenderTexture.height, TextureFormat.RGB24, mipmaps);
+        Texture2D texture2D = new Texture2D(inputRenderTexture.width, inputRenderTexture.height, TextureFormat.RGBA32, mipmaps);
 
         return TakeScreenshot(inputRenderTexture, texture2D);
 
@@ -125,6 +125,46 @@ public static class StaticUtilites
         RenderTexture.active = currentRenderTexture;
 
         return outputTexture;
+    }
+
+    public static Color32[] GetColor32ArrayFromRenderTexture(RenderTexture rt)
+    {
+        // 1. Ensure the source RenderTexture is not null
+        if (rt == null)
+        {
+            Debug.LogError("Source RenderTexture is null.");
+            return null;
+        }
+
+        // 2. Create a temporary Texture2D to hold the pixel data on the CPU
+        // Ensure the format is one that supports being read from (e.g., RGBA32)
+        Texture2D tempTexture2D = new Texture2D(rt.width, rt.height, TextureFormat.RGBA32, false);
+
+        // 3. Save the currently active RenderTexture so it can be restored later
+        RenderTexture previousActiveRenderTexture = RenderTexture.active;
+
+        // 4. Set the source RenderTexture as the active one
+        RenderTexture.active = rt;
+
+        // 5. Read the pixels from the active RenderTexture into the Texture2D
+        // The rect covers the entire texture from the bottom-left corner (0, 0)
+        tempTexture2D.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
+
+        // 6. Apply the changes to the Texture2D
+        // This uploads the read pixel data to the CPU memory so it can be accessed by GetPixels32
+        tempTexture2D.Apply();
+
+        // 7. Get the pixel colors as a Color32 array
+        Color32[] colors = tempTexture2D.GetPixels32(); //
+
+        // 8. Restore the previously active RenderTexture
+        RenderTexture.active = previousActiveRenderTexture;
+
+        // 9. Clean up the temporary Texture2D
+        GameObject.Destroy(tempTexture2D);
+
+        // 10. Return the Color32 array
+        return colors;
     }
 
     public static Texture2D ResizeTexture(Texture2D source, int maxWidth = 128, bool mipmaps=false)
