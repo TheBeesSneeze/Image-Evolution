@@ -6,17 +6,24 @@ using Unity.VisualScripting;
 using UnityEngine.UIElements;
 using static UnityEngine.UIElements.UxmlAttributeDescription;
 using System.Linq;
+using UnityEditor.ShaderGraph.Internal;
 
 public class ShapePoolManager : Singleton<ShapePoolManager>
 {
     [SerializeField] private GameObject shapePrefab;
 
-    private List<Shape> shapes = new List<Shape>();
+    public List<Shape> shapes = new List<Shape>();
+    public List<Shape> oldShapes = new List<Shape>();
 
     // Start is called before the first frame update
     void Start()
     {
         
+    }
+
+    private Shape GetNextShape()
+    {
+        return shapes.FirstOrDefault(s => s.settingsApplied == false);
     }
 
     public Shape CreateShape()
@@ -26,60 +33,51 @@ public class ShapePoolManager : Singleton<ShapePoolManager>
 
     public Shape CreateShape(Shape shape)
     {
-        Shape newShape = FindFirstShape(false);
+        Shape newShape = GetNextShape();
 
         if (newShape == null)
         {
             return InstantiateNewShape(shape);
         }
 
-        newShape.spriteRenderer.enabled = true;
-        newShape.Reset();
         newShape.CopyShape(shape);
-        newShape.inUse = true;
         newShape.spriteRenderer.enabled = false;
         return newShape;
     }
 
     public Shape CreateShape(Vector3 postion, Quaternion rotation)
     {
-        Shape newShape = FindFirstShape(false);
+        Shape newShape = GetNextShape();
 
         if(newShape == null)
         {
             newShape = InstantiateNewShape(postion, rotation);
-            newShape.inUse=true;
             return newShape;
         }
-        newShape.spriteRenderer.enabled = true;
-        newShape.transform.position = postion;
-        newShape.transform.rotation = rotation;
-        newShape.Reset();
-        newShape.inUse = true;
-        newShape.spriteRenderer.enabled = false;
+
+        newShape.Reset(ShapeManager.Instance.randomColorMode, true);
         return newShape;
     }
 
     public void RemoveShape(Shape shape)
     {
-        shape.spriteRenderer.enabled = false;
-        shape.inUse = false;
-        shape.OnRemoveFromPool();
+        
     }
 
-    public void RemoveAllShapes()
+    public void ResetAllShapesForNextTime()
     {
         foreach(Shape shape in shapes)
         {
-            RemoveShape(shape);
+            shape.Reset(0, false);
         }
     }
 
     public void EjectShapeGameObjectFromPool(Shape shape)
     {
-        // swap out with different gameobject
-        shape.transform = Instantiate(shapePrefab).transform;
-        shape.inUse = false ;
+        oldShapes.Add(shape);
+        shapes.Remove(shape);
+
+        shape.spriteRenderer.enabled = true;
         /*
         int index = FindIndex(shape);
         shapes.RemoveAt(index);
@@ -110,7 +108,7 @@ public class ShapePoolManager : Singleton<ShapePoolManager>
     {
         GameObject newShapeGameObject = Instantiate(shapePrefab, postion, rotation);
         newShapeGameObject.gameObject.layer = CameraManager.Instance.candidateLayer;
-        Shape newShape = new Shape(newShapeGameObject.transform);
+        Shape newShape = new Shape(newShapeGameObject.transform, ShapeManager.Instance.randomColorMode);
 
         shapes.Add(newShape);
         return newShape;
@@ -120,7 +118,7 @@ public class ShapePoolManager : Singleton<ShapePoolManager>
     {
         GameObject newShapeGameObject = Instantiate(shape.gameObject);
         newShapeGameObject.gameObject.layer = CameraManager.Instance.candidateLayer;
-        Shape newShape = newShapeGameObject.GetComponent<Shape>();
+        Shape newShape = new Shape(newShapeGameObject.transform, ShapeManager.Instance.randomColorMode);
         shapes.Add(newShape);
         return newShape;
     }

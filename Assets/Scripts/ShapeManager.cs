@@ -45,7 +45,8 @@ public class ShapeManager : Singleton<ShapeManager>
     public bool AverageColorMask => settingsProfile.AverageColorMask;
     public bool ApplyAverageToVariants => settingsProfile.ApplyAverageToVariants;
     public bool FullyRandomColor => settingsProfile.FullyRandomColor;
-    public bool AnyRandomColorFromImage=> settingsProfile.AnyRandomColorFromImage;
+    private ShapeColorMode _shapeColorModes => settingsProfile.ShapeColorModes; // private
+    public List<ShapeColorMode> ShapeColorModes;
     private bool randomizeZOrder=> settingsProfile.randomizeZOrder;
     public int MaxZOrder => settingsProfile.MaxZOrder;
     public List<Sprite> shapeSprites=> settingsProfile.shapeSprites;
@@ -56,6 +57,7 @@ public class ShapeManager : Singleton<ShapeManager>
     public static UnityEvent OnShapeFailed = new UnityEvent();
     public static UnityEvent OnAnyShapeCreated = new UnityEvent();
 
+    [HideInInspector] public static Vector2 size;
     [HideInInspector] public static Vector2 halfsize;
     [HideInInspector] public static Vector2 scaledHalfSize;
 
@@ -85,6 +87,8 @@ public class ShapeManager : Singleton<ShapeManager>
         {
             settingsProfile.IconUseCounts = new();
         }
+
+        ShapeColorModes = GetColorModes();
 
         //if(settingsProfile.IconUseCounts.Count )
 
@@ -181,7 +185,7 @@ public class ShapeManager : Singleton<ShapeManager>
         winner.spriteRenderer.sortingOrder = shapesCreated + 1;
 
         ShapePoolManager.Instance.EjectShapeGameObjectFromPool(winner);
-        ShapePoolManager.Instance.RemoveAllShapes();
+        ShapePoolManager.Instance.ResetAllShapesForNextTime();
 
         #region set score text
         if (winner.score < bestScore)
@@ -304,7 +308,6 @@ public class ShapeManager : Singleton<ShapeManager>
     private void CreateShapeVariants()
     {
         List<Shape> newShapes = new List<Shape>();
-
 
         for ( int i = 0; i < shapes.Count; i++ )
         {
@@ -447,19 +450,10 @@ public class ShapeManager : Singleton<ShapeManager>
     {
         Shape shape = ShapePoolManager.Instance.CreateShape() ;
 
-        shape.Reset();
-        shape.RandomizeSprite();
-        shape.RandomizeSpriteFlip();
-        shape.RandomizeRotation();
-        shape.RandomizePosition();
+        shape.Reset(randomColorMode, randomizeSettings: true);
+
         // color is set when score is set
-        if (shape.colorMode == ShapeColorMode.RandomColorByPosition || !AverageColorMask)
-        {
-            if (FullyRandomColor)
-                shape.RandomizeColorCompletely(1, false);
-            else
-                shape.RandomColorGenerationMethod();
-        }
+        shape.RandomizeColor();
         shape.RandomizeOpacity();
         shape.RandomizeScale();
         if (randomizeZOrder)
@@ -480,13 +474,8 @@ public class ShapeManager : Singleton<ShapeManager>
         shape.RandomizeScale(sizeScalar);
         if(randomizeZOrder)
             shape.RandomizeZOrder(0.1f);
-        if(shape.colorMode == ShapeColorMode.RandomColorByPosition || !ApplyAverageToVariants)
-        {
-            if (FullyRandomColor)
-                shape.RandomizeColorCompletely(colorScalar, false);
-            else
-                shape.RandomColorGenerationMethod(colorScalar);
-        }
+        shape.RandomizeColor();
+        shape.ApplyTransformations(showShape:false);
     }
 
     /// <summary>
@@ -495,8 +484,6 @@ public class ShapeManager : Singleton<ShapeManager>
     public Shape CreateNewShapeVariant(Shape shape)
     {
         Shape newShape = ShapePoolManager.Instance.CreateShape(shape);
-
-        newShape.Reset();
         Random_TweakShape(newShape);
         newShape.variantLevel = shape.variantLevel + 1;
 
@@ -504,6 +491,35 @@ public class ShapeManager : Singleton<ShapeManager>
 
         return newShape;
     }
+
+    #endregion
+
+    #region Util
+
+    public List<ShapeColorMode> GetColorModes()
+    {
+        List<ShapeColorMode> selectedElements = new List<ShapeColorMode>();
+        for (int i = 0; i < System.Enum.GetValues(typeof(ShapeColorMode)).Length; i++)
+        {
+            int layer = 1 << i;
+            if (((int)_shapeColorModes & layer) != 0)
+            {
+                selectedElements.Add((ShapeColorMode)i);
+            }
+        }
+
+        if(selectedElements.Count <=0)
+            selectedElements.Add(ShapeColorMode.AnyRandomColorFromImage);
+
+        return selectedElements;
+    }
+
+    #endregion
+
+    #region Utility
+
+    public ShapeColorMode randomColorMode => ShapeColorModes.GetRandomItem();
+
     #endregion
 
     #region debug
@@ -557,19 +573,6 @@ public class ShapeManager : Singleton<ShapeManager>
     }
 
     [System.Obsolete]
-    public void Random_Partial_TweakShape(Shape shape, float scalar)
-    {
-        if (StaticUtilities.CoinFlip()) shape.RandomizeSprite(scalar);
-        if (StaticUtilities.CoinFlip()) shape.RandomizeRotation(scalar);
-        if (StaticUtilities.ChanceFraction(1, 1000)) shape.RandomizePosition(1);
-        //if (StaticUtilities.CoinFlip()) shape.RandomizePosition(scalar);
-        if (StaticUtilities.CoinFlip()) shape.SetColor(scalar);
-        if (StaticUtilities.CoinFlip()) shape.RandomizeOpacity(scalar);
-        if (StaticUtilities.CoinFlip()) shape.RandomizeScale(scalar);
-        if (StaticUtilities.CoinFlip()) shape.RandomizeZOrder(scalar);
-    }
-
-    [System.Obsolete]
     public void CopyShapeController(ShapeManager other)
     {
         if (other == this)
@@ -599,7 +602,7 @@ public class ShapeManager : Singleton<ShapeManager>
     }
 
     #region debug
-    [Button]
+    /*[Button]
     public void Force_RandomlyTweakAllShapes_DEBUG()
     {
         //float scalar = 1 - candidateController.Accuracy;
@@ -611,7 +614,7 @@ public class ShapeManager : Singleton<ShapeManager>
             Random_Partial_TweakShape(shape, scalar);
         }
 
-    }
+    }*/
 
     [System.Obsolete]
     void RemoveScoresUnderAverage()

@@ -55,7 +55,10 @@ public class SettingsProfile : ScriptableObject
     [Tooltip("Literally any color")]
     public bool FullyRandomColor = false;
     //[HideIf(EConditionOperator.Or, "AverageColorMask", "FullyRandomColor")]
-    public bool AnyRandomColorFromImage = true;
+
+    [EnumFlags]
+    public ShapeColorMode ShapeColorModes;
+
     // TODO: sample from image position?
     // TODO: make this an enum bro,,, and an array for different shape types
 

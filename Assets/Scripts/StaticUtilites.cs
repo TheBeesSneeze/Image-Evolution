@@ -444,6 +444,14 @@ public static class StaticUtilities
     }
 
     /// <summary>
+    /// Does a lerp but the x and y axes are two different percents.
+    /// </summary>
+    public static Vector2 DoubleLerp(Vector2 a, Vector2 b, Vector2 t)
+    {
+        return new Vector2(Mathf.Lerp(a.x, b.x, t.x), Mathf.Lerp(a.y, b.y, t.y));
+    }
+
+    /// <summary>
     /// Get the smallest value in a vector
     /// </summary>
     public static float Min(this Vector3 vector)
@@ -542,6 +550,14 @@ public static class StaticUtilities
     public static Vector4 VectorAbs(Color32 color)
     {
         return new Vector4(Mathf.Abs(color.r), Mathf.Abs(color.g), Mathf.Abs(color.b), Mathf.Abs(color.a));
+    }
+
+    public static Vector2 Clamp(this Vector2 value, Vector2 min, Vector2 max)
+    {
+        return new Vector2(
+            Mathf.Clamp(value.x, min.x, max.x),
+            Mathf.Clamp(value.y, min.y, max.y)
+            );
     }
 
     #endregion
@@ -682,6 +698,20 @@ public static class StaticUtilities
     }
 
     /// <summary>
+    /// Returns a random element from the collection
+    /// </summary>
+    /// <param name="collection"></param>
+    /// <returns></returns>
+    public static T GetRandomItem<T>(this IList<T> collection)
+    {
+        if (!collection.Any())
+            return default;
+
+        int index = UnityEngine.Random.Range(0, collection.Count);
+        return collection[index];
+    }
+
+    /// <summary>
     /// Combines two arrays of any type
     /// </summary>
     /// <typeparam name="T">Variable type for arrays</typeparam>
@@ -734,8 +764,6 @@ public static class StaticUtilities
         if (str.Length == 0) return true;
         return false;
     }
-
-
 
     #endregion
 

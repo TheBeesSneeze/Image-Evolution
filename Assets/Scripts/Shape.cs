@@ -1,28 +1,26 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.WindowsRuntime;
 using NaughtyAttributes;
+using Unity.VisualScripting;
 using UnityEngine;
 
+[System.Serializable]
 public class Shape
 {
     /*
      * BIG TODO: RANDOMIZE FLIPY AND FLIPX
      */ 
 
-
     [ReadOnly]
     public int score = -1;
 
-    public bool inUse { get; private set; } // to be used by shapemanager
-
-    public ShapeColorMode colorMode;
+    public bool settingsApplied { get; private set; } // to be used by shapemanager
 
     [HideInInspector] public SpriteRenderer spriteRenderer;
     [HideInInspector] public Transform transform;
     public GameObject gameObject => transform.gameObject;
 
-    private bool hasSetPosition = false;
-    [HideInInspector] public bool hasSetColor = false;
     [HideInInspector] public int variantLevel;
     public float a => spriteRenderer.color.a;
 
@@ -30,7 +28,23 @@ public class Shape
     static int colorModeIndex;
     static int possibleColorModesCount; /* TODO: move to shape manager */
 
-    public Shape(Transform transform)
+    #region Attributes
+
+    // percent 0 - 1
+    Vector2 position;
+    Vector2 scale;
+    float rotation;
+    Sprite sprite;
+    Color color;
+    bool flipX;
+    public ShapeColorMode colorMode { get; private set; }
+    int layer;
+
+    #endregion
+
+    Vector2 scaledPosition => StaticUtilities.DoubleLerp(-ShapeManager.scaledHalfSize, ShapeManager.scaledHalfSize, position);
+
+    public Shape(Transform transform, ShapeColorMode shapeColorMode)
     {
         if (possibleColorModesCount <= 0)
             possibleColorModesCount = System.Enum.GetValues(typeof(ShapeColorMode)).Length;
@@ -38,30 +52,51 @@ public class Shape
         this.transform = transform;
         spriteRenderer = transform.GetComponent<SpriteRenderer>();
 
-        Reset();
+        Reset(shapeColorMode, randomizeSettings: true);
         //hasSetColor = false;
         //sprite.color = Color.white;
     }
 
-    public void Reset()
+    public void Reset(ShapeColorMode shapeColorMode, bool randomizeSettings)
     {
+        settingsApplied = false;
         score = -1;
-        colorModeIndex = (colorModeIndex + 1) % /*possibleColorModesCount*/ 2;
-        colorMode = (ShapeColorMode)(colorModeIndex);
+        this.colorMode = colorMode;
+        variantLevel = 0;
 
-        if (!ShapeManager.Instance.AverageColorMask)
-            colorMode = ShapeColorMode.RandomColorByPosition;
+        colorMode = shapeColorMode;
+
+        spriteRenderer.enabled = false;
+
+        if (randomizeSettings)
+        {
+            RandomizePosition(1);
+            RandomizeScale(1);
+            RandomizeRotation(1);
+            RandomizeOpacity(1);
+            RandomizeColor(1);
+            RandomizeSprite(1);
+            //RandomizeZOrder(1);
+            RandomizeSpriteFlip(1);
+            ApplyTransformations(showShape: false);
+        }
     }
 
-    /// <summary>
-    /// when shape not in use anymore, NOT when shape is completely ejected from the pool.
-    /// poor wording.
-    /// </summary>
-    public void OnRemoveFromPool()
+    public void ApplyTransformations(bool showShape)
     {
-        variantLevel = 0;
-        //sprite.color = Color.white;
-        hasSetColor = false;
+        if (spriteRenderer == null) spriteRenderer = transform.GetComponent<SpriteRenderer>();
+
+        transform.position = scaledPosition;
+        transform.eulerAngles = new Vector3(0, 0, rotation);
+        transform.localScale = scale;
+
+        spriteRenderer.flipX = flipX;
+        spriteRenderer.color = color;
+        spriteRenderer.sortingOrder = layer;
+        spriteRenderer.sprite = sprite;
+
+        spriteRenderer.enabled = showShape;
+        settingsApplied = true;
     }
 
     public void CopyShape(Shape other, bool copyLayer=false)
@@ -69,98 +104,65 @@ public class Shape
         if(other.score < 0)
             CameraManager.Instance.CalculateScore(other);
 
-        if(spriteRenderer == null)
-            spriteRenderer = transform. GetComponent<SpriteRenderer>();
+        transform = GameObject.Instantiate(other.transform);
+        spriteRenderer = transform.GetComponent<SpriteRenderer>();
 
-        transform.position = other.transform.position;
-        transform.rotation = other.transform.rotation;
-        transform.localScale = other.transform.localScale;
-        spriteRenderer.sprite = other.spriteRenderer.sprite;
-        if(!ShapeManager.Instance.ApplyAverageToVariants)
-            spriteRenderer.color =other.spriteRenderer.color;
+        position = other.position;
+        rotation = other.rotation;
+        scale = other.scale;
+        sprite = other.sprite;
+        flipX = other.flipX;
+        color =other.color;
 
-        hasSetColor = other.hasSetColor;
         score = other.score;
         colorMode = other.colorMode;
 
         if (copyLayer)
-            gameObject.layer = other.gameObject.layer;
+            layer = other.layer;
+
+        settingsApplied = true;
+        //ApplyTransformations(false);
     }
 
-    public void SetColor(Color color)
+    public void SetColorMode(ShapeColorMode colorMode)
     {
-        if (colorMode != ShapeColorMode.AverageColorFromTexture)
-            Debug.LogWarning("warning");
-
-        color.a = spriteRenderer.color.a;
-        spriteRenderer.color = color;
-        hasSetColor = true;
+        this.colorMode = colorMode;
     }
 
     #region randomize properties
 
     public void RandomizeSprite(float intensityScalar=1)
     {
-        score = -1;
-
-        if (spriteRenderer == null)
-            spriteRenderer = transform.GetComponent<SpriteRenderer>();
-
         if (intensityScalar >= Random.value) 
-            spriteRenderer.sprite = ShapeManager.Instance.shapeSprites[Random.Range(0, ShapeManager.Instance.shapeSprites.Count)];
+            sprite = ShapeManager.Instance.shapeSprites[Random.Range(0, ShapeManager.Instance.shapeSprites.Count)];
     }
 
     public void RandomizeSpriteFlip(float intensityScalar=1)
     {
-        score = -1;
-
-        spriteRenderer.flipX = intensityScalar >= Random.value;
-        //sprite.flipY = intensityScalar >= Random.value;
+        if (Random.value <= intensityScalar ) 
+            flipX = !flipX;
     }
 
     public void RandomizeRotation(float intensityScalar = 1)
     {
-        score = -1;
-
-        float z = transform.eulerAngles.z;
-        float r = Random.value * 360;
+        float z = rotation;
+        float r = Random.value * 360f;
         float newz = Mathf.LerpAngle(z, r, intensityScalar);
-        transform.eulerAngles = new Vector3(0, 0, newz);
+        rotation = newz;
     }
 
     public void RandomizePosition(float intensityScalar = 1)
     {
         score = -1;
 
-        float x = Random.Range(-ShapeManager.scaledHalfSize.x, ShapeManager.scaledHalfSize.x);
-        float y = Random.Range(-ShapeManager.scaledHalfSize.y, ShapeManager.scaledHalfSize.y);
+        //float x = Random.Range(-ShapeManager.scaledHalfSize.x, ShapeManager.scaledHalfSize.x);
+        //float y = Random.Range(-ShapeManager.scaledHalfSize.y, ShapeManager.scaledHalfSize.y);
 
-        Vector2 randomPos = new Vector3(x, y) ;
+        Vector2 randomPos = new Vector2(Random.value, Random.value);
 
-        Vector2 newPos = Vector3.Lerp (transform.position, randomPos, intensityScalar);
+        Vector2 newPos = Vector3.Lerp (position, randomPos, intensityScalar);
 
-        if (false && hasSetPosition)
-        {
-            Debug.DrawLine(transform.position, randomPos, Color.black, 1);
-            Debug.DrawLine(transform.position, newPos, Color.green, 1);
-        }
-
-        transform.position = newPos;
-
-        hasSetPosition = true;
-    }
-
-    public void RandomColorGenerationMethod(float intensityScalar = 1)
-    {
-        if (StaticUtilities.ChanceFraction(1,3))
-        {
-            RandomizeColorCompletely(intensityScalar, true);
-        }
-        else
-        {
-            SetColor(intensityScalar, StaticUtilities.CoinFlip());
-        }
-
+        position = newPos;
     }
 
     //[System.Obsolete]
@@ -169,18 +171,7 @@ public class Shape
         if (colorMode == ShapeColorMode.AverageColorFromTexture)
             Debug.LogWarning("this is supposed to average");
 
-        if(intensityScalar >= 1)
-            hasSetColor = true;
-
-        if (!hasSetColor && ShapeManager.Instance.AverageColorMask)
-            Debug.LogWarning("color not initially set! oh no");
-
-        score = -1;
-
-        if (intensityScalar >= 1)
-            hasSetColor = true;
-
-        Color current = spriteRenderer.color;
+        Color current = color;
         Color random;
 
         if (useColorFromTexture)
@@ -192,50 +183,56 @@ public class Shape
             random = new Color(Random.value, Random.value, Random.value);
 
         random.a = current.a;
-        spriteRenderer.color = Color.Lerp(current, random, intensityScalar);
+        color = Color.Lerp(current, random, intensityScalar);
     }
 
-    public void SetColor(float intensityScalar = 1, bool randomizeALittle = false)
+    public void RandomizeColor(float intensityScalar = 1, bool randomizeALittle = false)
     {
         if (colorMode == ShapeColorMode.AverageColorFromTexture)
             Debug.LogWarning("this is supposed to average");
 
-        if (intensityScalar >= 1)
-            hasSetColor = true;
-
-        if (!hasSetColor && ShapeManager.Instance.AverageColorMask)
-            Debug.LogWarning("color not initially set! oh no");
-
         //score = -1;
 
-        Color current = spriteRenderer.color;
+        Color current = color;
         Color newColor;
 
-        if (!hasSetPosition && ShapeManager.Instance.AnyRandomColorFromImage)
-            Debug.LogError("Color set before position");
-
-        if (hasSetPosition && ShapeManager.Instance.AnyRandomColorFromImage)
+        switch (colorMode)
         {
-            //newColor = StaticUtilities.GetRandomColorFromTexture(EvolutionManager.Instance.TextureToSimulate);
-            newColor = EvolutionManager.GetRandomColorFromTargetTexture();
+            case ShapeColorMode.AnyRandomColorFromImage:
+                newColor = EvolutionManager.GetRandomColorFromTargetTexture();
+                break;
+
+            case ShapeColorMode.RandomColorByPosition:
+                newColor = EvolutionManager.GetRandomColorFromTargetTextureNearPoint(position);
+                break;
+
+            case ShapeColorMode.AverageColorFromTexture:
+                float x_pct = Mathf.InverseLerp(-ShapeManager.halfsize.x, ShapeManager.halfsize.x, transform.position.x);
+                float y_pct = Mathf.InverseLerp(-ShapeManager.halfsize.y, ShapeManager.halfsize.y, transform.position.y);
+
+                if (randomizeALittle)
+                {
+                    float scale = transform.localScale.x;
+                    x_pct = Mathf.Clamp01(x_pct + (0.1f * scale * (Random.value * 2 - 1)));
+                    y_pct = Mathf.Clamp01(y_pct + (0.1f * scale * (Random.value * 2 - 1)));
+                }
+
+                newColor = EvolutionManager.Instance.TextureToSimulate.GetPixelBilinear(x_pct, y_pct);
+                break;
+
+            case ShapeColorMode.CompletelyRandom:
+                RandomizeColorCompletely();
+                return;
+
+            default:
+                Debug.Log($"Unrecognized color mode: {colorMode}");
+                newColor = Color.magenta;
+                break;
         }
-        else
-        {
-            float x_pct = Mathf.InverseLerp(-ShapeManager.halfsize.x, ShapeManager.halfsize.x, transform.position.x);
-            float y_pct = Mathf.InverseLerp(-ShapeManager.halfsize.y, ShapeManager.halfsize.y, transform.position.y);
 
-            if (randomizeALittle)
-            {
-                float scale = transform.localScale.x;
-                x_pct = Mathf.Clamp01(x_pct + (0.1f * scale * (Random.value * 2 - 1))); 
-                y_pct = Mathf.Clamp01(y_pct + (0.1f * scale * (Random.value * 2 - 1)));
-            }
-
-            newColor = EvolutionManager.Instance.TextureToSimulate.GetPixelBilinear(x_pct, y_pct);
-        }
-
+        newColor = Color.Lerp(current, newColor, intensityScalar);
         newColor.a = current.a;
-        spriteRenderer.color = newColor;
+        color = newColor;
     }
 
     public void RandomizeOpacity(float intensityScalar=1)
@@ -245,11 +242,9 @@ public class Shape
         float a = Random.Range(ShapeManager.Instance.minAlpha, ShapeManager.Instance.maxAlpha) ;
         //a = Mathf.Clamp(a,ShapeManager.Instance.minAlpha, 1);
         //a = Mathf.Clamp01 (a);
-        Color current = spriteRenderer.color;
+        float current = color.a;
 
-        current.a = Mathf.Lerp(current.a, a, intensityScalar);
-
-        spriteRenderer.color = current;
+        color.a = Mathf.Lerp(a, a, intensityScalar);
     }
 
     public void RandomizeScale(float intensityScalar = 1)
@@ -261,14 +256,14 @@ public class Shape
 
         if (ShapeManager.Instance.PreserveAspectRatio)
         {
-            float oldScale = transform.localScale.x;
+            float oldScale = scale.x;
             float randomScale = Mathf.Lerp(minsize, maxsize, Mathf.Pow(Random.value, ShapeManager.Instance.SmallShapesSizePreference));
             float newScale = Mathf.Lerp(oldScale, randomScale, intensityScalar);
-            transform.localScale = Vector3.one * newScale;
+            scale = Vector3.one * newScale;
         }
         else
         {
-            Vector2 oldScale = transform.localScale;
+            Vector2 oldScale = scale;
             float randomScalex = Mathf.Lerp(minsize, maxsize, Mathf.Pow(Random.value, ShapeManager.Instance.SmallShapesSizePreference));
             float randomScaley = Mathf.Lerp(minsize, maxsize, Mathf.Pow(Random.value, ShapeManager.Instance.SmallShapesSizePreference));
 
@@ -277,7 +272,7 @@ public class Shape
 
             Vector2 newScale = new Vector2(newx, newy);
 
-            transform.localScale = newScale;
+            scale = newScale;
         }
     }
 
@@ -286,7 +281,7 @@ public class Shape
         score = -1;
 
         int random = Random.Range(0, ShapeManager.Instance.MaxZOrder);
-        spriteRenderer.sortingOrder = (int)Mathf.Lerp(spriteRenderer.sortingOrder, random, intensity);
+        layer = (int)Mathf.Lerp(spriteRenderer.sortingOrder, random, intensity);
     }
 
     #endregion
@@ -297,7 +292,6 @@ public class Shape
     private void CalculateScore_DEBUG()
     {
         gameObject.layer = 6;
-        hasSetColor = false;
         score = -1;
         spriteRenderer.enabled = false;
         ShapeManager.OnShapeSelected.Invoke(); // to get current state
@@ -328,7 +322,6 @@ public class Shape
 
 
         transform.position = new Vector3(x, y);
-        hasSetPosition = true;
     }
 
 

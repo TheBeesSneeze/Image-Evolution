@@ -54,7 +54,20 @@ public class EvolutionManager : Singleton<EvolutionManager>
     {
         return targetColors[Random.Range(0, targetColors.Length)];
     }
-    
-    
+
+    public static Color GetRandomColorFromTargetTextureNearPoint(Vector2 percentagePoint)
+    {
+        // TODO: make this a setting
+        float hardCodedDistance = 0.1f;
+        percentagePoint += new Vector2(UnityEngine.Random.Range(-hardCodedDistance, hardCodedDistance), UnityEngine.Random.Range(-hardCodedDistance, hardCodedDistance));
+        percentagePoint = percentagePoint.Clamp(Vector2.zero, Vector2.one);
+
+        int x = (int)(Instance.TextureToSimulate.width * percentagePoint.x);
+        int y = (int)(Instance.TextureToSimulate.height * percentagePoint.y);
+
+
+
+        return targetColors[(y* Instance.TextureToSimulate.height) + x];
+    }
 
 }

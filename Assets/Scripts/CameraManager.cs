@@ -221,7 +221,7 @@ public class CameraManager : Singleton<CameraManager>
         shape.spriteRenderer.enabled = true;
         if (shape.colorMode == ShapeColorMode.AverageColorFromTexture &&
              ShapeManager.Instance.AverageColorMask &&
-            (ShapeManager.Instance.ApplyAverageToVariants || !shape.hasSetColor))
+            (ShapeManager.Instance.ApplyAverageToVariants))
         {
             screenshotolors = GetShapeColorsAsAverageFromTarget(shape);
         }
@@ -307,7 +307,10 @@ public class CameraManager : Singleton<CameraManager>
         }
 
         avg_color.a = (byte)currentOpacity;
-        currentShape.SetColor(avg_color);
+        //currentShape.SetColor(avg_color);
+        //TODO: uncomment this and figure it out
+
+
         return screenshotolors;
     }
 
