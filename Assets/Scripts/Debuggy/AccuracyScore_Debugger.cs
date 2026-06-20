@@ -24,8 +24,8 @@ public class AccuracyScore_Debugger : MonoBehaviour
     [Button]
     public void CompareScore()
     {
-        Texture2D targetTextureTexture = StaticUtilites.TakeScreenshot(targetTexture);
-        Texture2D compareTextureTexture = StaticUtilites.TakeScreenshot(compareTexture);
+        Texture2D targetTextureTexture = StaticUtilities.TakeScreenshot(targetTexture);
+        Texture2D compareTextureTexture = StaticUtilities.TakeScreenshot(compareTexture);
         var targetColors = targetTextureTexture.GetPixelData<Color>(1);
         var compareColors = compareTextureTexture.GetPixelData<Color>(1);
 
@@ -34,7 +34,7 @@ public class AccuracyScore_Debugger : MonoBehaviour
         Color[] differenceColors = new Color[compareColors.Length];
         for(int i=0; i<targetColors.Length; i++)
         {
-            Vector4 difference = StaticUtilites.VectorAbs((Vector4)targetColors[i] - (Vector4)compareColors[i]);
+            Vector4 difference = StaticUtilities.VectorAbs((Vector4)targetColors[i] - (Vector4)compareColors[i]);
             differenceSum += (Vector3) difference;
             differenceColors[i] = (Color) difference;
             differenceColors[i].a = 1;
@@ -49,7 +49,7 @@ public class AccuracyScore_Debugger : MonoBehaviour
         differenceImage.texture = differenceTexture;
 
         differenceSum *= 256;
-        Vector3Int differenceSumInt = StaticUtilites.Vector3ToInt(differenceSum);
+        Vector3Int differenceSumInt = StaticUtilities.Vector3ToInt(differenceSum);
         scoreoutput_text.text = (differenceSumInt.x + differenceSumInt.y + differenceSumInt.z).ToString(); 
     }
 }

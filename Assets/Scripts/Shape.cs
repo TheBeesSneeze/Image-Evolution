@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using NaughtyAttributes;
 using UnityEngine;
 
-public class Shape : MonoBehaviour
+public class Shape
 {
     /*
      * BIG TODO: RANDOMIZE FLIPY AND FLIPX
@@ -13,39 +13,44 @@ public class Shape : MonoBehaviour
     [ReadOnly]
     public int score = -1;
 
-    [ReadOnly]
-    public bool inUse; // to be used by shapemanager
+    public bool inUse { get; private set; } // to be used by shapemanager
 
     public ShapeColorMode colorMode;
 
-    [HideInInspector] public SpriteRenderer sprite;
+    [HideInInspector] public SpriteRenderer spriteRenderer;
+    [HideInInspector] public Transform transform;
+    public GameObject gameObject => transform.gameObject;
+
     private bool hasSetPosition = false;
     [HideInInspector] public bool hasSetColor = false;
     [HideInInspector] public int variantLevel;
-    public float a => sprite.color.a;
+    public float a => spriteRenderer.color.a;
 
     //calculation variables
     static int colorModeIndex;
     static int possibleColorModesCount; /* TODO: move to shape manager */
 
-
-    private void Start()
+    public Shape(Transform transform)
     {
-        if(possibleColorModesCount <=0 )
+        if (possibleColorModesCount <= 0)
             possibleColorModesCount = System.Enum.GetValues(typeof(ShapeColorMode)).Length;
-    }
 
-    public void Initialize()
-    {
-        sprite = GetComponent<SpriteRenderer>();
-        score = -1;
-        colorModeIndex = (colorModeIndex + 1) % /*possibleColorModesCount*/ 2;
-        colorMode = (ShapeColorMode) (colorModeIndex);
+        this.transform = transform;
+        spriteRenderer = transform.GetComponent<SpriteRenderer>();
 
-        if(!ShapeManager.Instance.AverageColorMask)
-            colorMode = ShapeColorMode.RandomColorByPosition;
+        Reset();
         //hasSetColor = false;
         //sprite.color = Color.white;
+    }
+
+    public void Reset()
+    {
+        score = -1;
+        colorModeIndex = (colorModeIndex + 1) % /*possibleColorModesCount*/ 2;
+        colorMode = (ShapeColorMode)(colorModeIndex);
+
+        if (!ShapeManager.Instance.AverageColorMask)
+            colorMode = ShapeColorMode.RandomColorByPosition;
     }
 
     /// <summary>
@@ -64,15 +69,15 @@ public class Shape : MonoBehaviour
         if(other.score < 0)
             CameraManager.Instance.CalculateScore(other);
 
-        if(sprite == null)
-            sprite = GetComponent<SpriteRenderer>();
+        if(spriteRenderer == null)
+            spriteRenderer = transform. GetComponent<SpriteRenderer>();
 
         transform.position = other.transform.position;
         transform.rotation = other.transform.rotation;
         transform.localScale = other.transform.localScale;
-        sprite.sprite = other.sprite.sprite;
+        spriteRenderer.sprite = other.spriteRenderer.sprite;
         if(!ShapeManager.Instance.ApplyAverageToVariants)
-            sprite.color =other.sprite.color;
+            spriteRenderer.color =other.spriteRenderer.color;
 
         hasSetColor = other.hasSetColor;
         score = other.score;
@@ -87,8 +92,8 @@ public class Shape : MonoBehaviour
         if (colorMode != ShapeColorMode.AverageColorFromTexture)
             Debug.LogWarning("warning");
 
-        color.a = sprite.color.a;
-        sprite.color = color;
+        color.a = spriteRenderer.color.a;
+        spriteRenderer.color = color;
         hasSetColor = true;
     }
 
@@ -98,18 +103,18 @@ public class Shape : MonoBehaviour
     {
         score = -1;
 
-        if (sprite == null)
-            sprite = GetComponent<SpriteRenderer>();
+        if (spriteRenderer == null)
+            spriteRenderer = transform.GetComponent<SpriteRenderer>();
 
         if (intensityScalar >= Random.value) 
-            sprite.sprite = ShapeManager.Instance.shapeSprites[Random.Range(0, ShapeManager.Instance.shapeSprites.Count)];
+            spriteRenderer.sprite = ShapeManager.Instance.shapeSprites[Random.Range(0, ShapeManager.Instance.shapeSprites.Count)];
     }
 
     public void RandomizeSpriteFlip(float intensityScalar=1)
     {
         score = -1;
 
-        sprite.flipX = intensityScalar >= Random.value;
+        spriteRenderer.flipX = intensityScalar >= Random.value;
         //sprite.flipY = intensityScalar >= Random.value;
     }
 
@@ -147,13 +152,13 @@ public class Shape : MonoBehaviour
 
     public void RandomColorGenerationMethod(float intensityScalar = 1)
     {
-        if (StaticUtilites.ChanceFraction(1,3))
+        if (StaticUtilities.ChanceFraction(1,3))
         {
             RandomizeColorCompletely(intensityScalar, true);
         }
         else
         {
-            SetColor(intensityScalar, StaticUtilites.CoinFlip());
+            SetColor(intensityScalar, StaticUtilities.CoinFlip());
         }
 
     }
@@ -175,19 +180,19 @@ public class Shape : MonoBehaviour
         if (intensityScalar >= 1)
             hasSetColor = true;
 
-        Color current = sprite.color;
+        Color current = spriteRenderer.color;
         Color random;
 
         if (useColorFromTexture)
         {
-            //random = StaticUtilites.GetRandomColorFromTexture(EvolutionManager.Instance.TextureToSimulate);
+            //random = StaticUtilities.GetRandomColorFromTexture(EvolutionManager.Instance.TextureToSimulate);
             random = EvolutionManager.GetRandomColorFromTargetTexture();
         }
         else
             random = new Color(Random.value, Random.value, Random.value);
 
         random.a = current.a;
-        sprite.color = Color.Lerp(current, random, intensityScalar);
+        spriteRenderer.color = Color.Lerp(current, random, intensityScalar);
     }
 
     public void SetColor(float intensityScalar = 1, bool randomizeALittle = false)
@@ -203,7 +208,7 @@ public class Shape : MonoBehaviour
 
         //score = -1;
 
-        Color current = sprite.color;
+        Color current = spriteRenderer.color;
         Color newColor;
 
         if (!hasSetPosition && ShapeManager.Instance.AnyRandomColorFromImage)
@@ -211,7 +216,7 @@ public class Shape : MonoBehaviour
 
         if (hasSetPosition && ShapeManager.Instance.AnyRandomColorFromImage)
         {
-            //newColor = StaticUtilites.GetRandomColorFromTexture(EvolutionManager.Instance.TextureToSimulate);
+            //newColor = StaticUtilities.GetRandomColorFromTexture(EvolutionManager.Instance.TextureToSimulate);
             newColor = EvolutionManager.GetRandomColorFromTargetTexture();
         }
         else
@@ -230,7 +235,7 @@ public class Shape : MonoBehaviour
         }
 
         newColor.a = current.a;
-        sprite.color = newColor;
+        spriteRenderer.color = newColor;
     }
 
     public void RandomizeOpacity(float intensityScalar=1)
@@ -240,11 +245,11 @@ public class Shape : MonoBehaviour
         float a = Random.Range(ShapeManager.Instance.minAlpha, ShapeManager.Instance.maxAlpha) ;
         //a = Mathf.Clamp(a,ShapeManager.Instance.minAlpha, 1);
         //a = Mathf.Clamp01 (a);
-        Color current = sprite.color;
+        Color current = spriteRenderer.color;
 
         current.a = Mathf.Lerp(current.a, a, intensityScalar);
 
-        sprite.color = current;
+        spriteRenderer.color = current;
     }
 
     public void RandomizeScale(float intensityScalar = 1)
@@ -281,7 +286,7 @@ public class Shape : MonoBehaviour
         score = -1;
 
         int random = Random.Range(0, ShapeManager.Instance.MaxZOrder);
-        sprite.sortingOrder = (int)Mathf.Lerp(sprite.sortingOrder, random, intensity);
+        spriteRenderer.sortingOrder = (int)Mathf.Lerp(spriteRenderer.sortingOrder, random, intensity);
     }
 
     #endregion
@@ -294,11 +299,11 @@ public class Shape : MonoBehaviour
         gameObject.layer = 6;
         hasSetColor = false;
         score = -1;
-        sprite.enabled = false;
+        spriteRenderer.enabled = false;
         ShapeManager.OnShapeSelected.Invoke(); // to get current state
-        sprite.enabled = true;
+        spriteRenderer.enabled = true;
         CameraManager.Instance.CalculateScore(this);
-        sprite.enabled = false;
+        spriteRenderer.enabled = false;
         gameObject.layer = 7;
     }
 

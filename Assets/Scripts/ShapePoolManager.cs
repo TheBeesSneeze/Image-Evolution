@@ -5,6 +5,7 @@ using NaughtyAttributes;
 using Unity.VisualScripting;
 using UnityEngine.UIElements;
 using static UnityEngine.UIElements.UxmlAttributeDescription;
+using System.Linq;
 
 public class ShapePoolManager : Singleton<ShapePoolManager>
 {
@@ -32,11 +33,11 @@ public class ShapePoolManager : Singleton<ShapePoolManager>
             return InstantiateNewShape(shape);
         }
 
-        newShape.sprite.enabled = true;
-        newShape.Initialize();
+        newShape.spriteRenderer.enabled = true;
+        newShape.Reset();
         newShape.CopyShape(shape);
         newShape.inUse = true;
-        newShape.sprite.enabled = false;
+        newShape.spriteRenderer.enabled = false;
         return newShape;
     }
 
@@ -50,18 +51,18 @@ public class ShapePoolManager : Singleton<ShapePoolManager>
             newShape.inUse=true;
             return newShape;
         }
-        newShape.sprite.enabled = true;
+        newShape.spriteRenderer.enabled = true;
         newShape.transform.position = postion;
         newShape.transform.rotation = rotation;
-        newShape.Initialize();
+        newShape.Reset();
         newShape.inUse = true;
-        newShape.sprite.enabled = false;
+        newShape.spriteRenderer.enabled = false;
         return newShape;
     }
 
     public void RemoveShape(Shape shape)
     {
-        shape.sprite.enabled = false;
+        shape.spriteRenderer.enabled = false;
         shape.inUse = false;
         shape.OnRemoveFromPool();
     }
@@ -74,22 +75,17 @@ public class ShapePoolManager : Singleton<ShapePoolManager>
         }
     }
 
-    public void EjectShapeFromPool(Shape shape)
+    public void EjectShapeGameObjectFromPool(Shape shape)
     {
+        // swap out with different gameobject
+        shape.transform = Instantiate(shapePrefab).transform;
+        shape.inUse = false ;
+        /*
         int index = FindIndex(shape);
         shapes.RemoveAt(index);
         shape.inUse = true;
         shape.gameObject.layer = CameraManager.Instance.currentStateLayer;
-    }
-
-    private Shape FindFirstShape(bool isActive)
-    {
-        for(int i = 0; i< shapes.Count; i++)
-        {
-            if (shapes[i].inUse == isActive)
-                return shapes[i];
-        }
-        return null;
+        */
     }
 
     // i need to do something better than this :~[
@@ -114,7 +110,8 @@ public class ShapePoolManager : Singleton<ShapePoolManager>
     {
         GameObject newShapeGameObject = Instantiate(shapePrefab, postion, rotation);
         newShapeGameObject.gameObject.layer = CameraManager.Instance.candidateLayer;
-        Shape newShape = newShapeGameObject.GetComponent<Shape>();
+        Shape newShape = new Shape(newShapeGameObject.transform);
+
         shapes.Add(newShape);
         return newShape;
     }

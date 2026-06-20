@@ -29,7 +29,7 @@ public class EvolutionManager : Singleton<EvolutionManager>
     void Start()
     {
         //settingsProfile = Instantiate(settingsProfile);
-        TextureToSimulate = StaticUtilites.ResizeTexture(TextureToSimulate, CameraManager.Instance.resolution, CameraManager.Instance.GenerateMipMaps);
+        TextureToSimulate = StaticUtilities.ResizeTexture(TextureToSimulate, CameraManager.Instance.resolution, CameraManager.Instance.GenerateMipMaps);
 
         InitialRefreshDelay();
     }

@@ -22,8 +22,8 @@ public class AverageColorDebugger : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        targetTexture = StaticUtilites.TakeScreenshot(targetRenderTexture, targetTexture);
-        currentTexture = StaticUtilites.TakeScreenshot(currentRenderTexture, currentTexture);
+        targetTexture = StaticUtilities.TakeScreenshot(targetRenderTexture, targetTexture);
+        currentTexture = StaticUtilities.TakeScreenshot(currentRenderTexture, currentTexture);
 
         if (compareTexture == null && Time.time > 0.25f)
             RecordCurrentState();

@@ -110,7 +110,8 @@ public class ShapeManager : Singleton<ShapeManager>
     {
         while (true)
         {
-            Destroy(NaturallySelectNewShape());
+            var newShape = NaturallySelectNewShape();
+            ShapePoolManager.Instance.EjectShapeGameObjectFromPool(newShape);
             //NaturallySelectNewShape();
 
             yield return null;
@@ -176,10 +177,10 @@ public class ShapeManager : Singleton<ShapeManager>
         Shape winner = shapes[0];
 
         if(!winner.IsUnityNull())
-            winner.sprite.enabled = true;
-        winner.sprite.sortingOrder = shapesCreated + 1;
+            winner.spriteRenderer.enabled = true;
+        winner.spriteRenderer.sortingOrder = shapesCreated + 1;
 
-        ShapePoolManager.Instance.EjectShapeFromPool(winner);
+        ShapePoolManager.Instance.EjectShapeGameObjectFromPool(winner);
         ShapePoolManager.Instance.RemoveAllShapes();
 
         #region set score text
@@ -206,10 +207,10 @@ public class ShapeManager : Singleton<ShapeManager>
         {
             bestScore = winner.score;
 
-            if (IconUseCounts.ContainsKey(winner.sprite.sprite))
-                IconUseCounts[winner.sprite.sprite]++;
+            if (IconUseCounts.ContainsKey(winner.spriteRenderer.sprite))
+                IconUseCounts[winner.spriteRenderer.sprite]++;
             else
-                IconUseCounts[winner.sprite.sprite] = 1;
+                IconUseCounts[winner.spriteRenderer.sprite] = 1;
         }
 
         if (settingsProfile.RecordIconUseFrequency && shapesCreated % settingsProfile.debugLogFrequency == 0 && shapesCreated != 0)
@@ -219,14 +220,14 @@ public class ShapeManager : Singleton<ShapeManager>
 
         currentScore = winner.score;
 
-        winner.gameObject.name = winner.sprite.sprite.name;
+        winner.gameObject.name = winner.spriteRenderer.sprite.name;
 
         if(DisplayGenerationCount)
         {
             Debug.Log("Stopped after " + i + " generations...\n" +
                   "Shape variant level: " + winner.variantLevel + "\n" +
                   "Shape color type: " + winner.colorMode.ToString() + "\n" +
-                  "Sprite: " + winner.sprite.sprite.name);
+                  "Sprite: " + winner.spriteRenderer.sprite.name);
         }     
 
         return winner;
@@ -284,7 +285,7 @@ public class ShapeManager : Singleton<ShapeManager>
             Shape newShape = CreateNewRandomShape();
 
             shapes.Add(newShape);
-            newShape.sprite.enabled = false;
+            newShape.spriteRenderer.enabled = false;
         }
     }
 
@@ -295,7 +296,7 @@ public class ShapeManager : Singleton<ShapeManager>
             Shape newShape = CreateNewRandomShape();
 
             shapes.Add(newShape);
-            newShape.sprite.enabled = false;
+            newShape.spriteRenderer.enabled = false;
         }
     }
 
@@ -313,7 +314,7 @@ public class ShapeManager : Singleton<ShapeManager>
             {
                 Shape variant = CreateNewShapeVariant(shapes[i]);
                 newShapes.Add(variant);
-                variant.sprite.enabled = false;
+                variant.spriteRenderer.enabled = false;
             }
         }
 
@@ -446,7 +447,7 @@ public class ShapeManager : Singleton<ShapeManager>
     {
         Shape shape = ShapePoolManager.Instance.CreateShape() ;
 
-        shape.Initialize();
+        shape.Reset();
         shape.RandomizeSprite();
         shape.RandomizeSpriteFlip();
         shape.RandomizeRotation();
@@ -464,7 +465,7 @@ public class ShapeManager : Singleton<ShapeManager>
         if (randomizeZOrder)
             shape.RandomizeZOrder();
         else
-            shape.sprite.sortingOrder = shapesCreated;
+            shape.spriteRenderer.sortingOrder = shapesCreated;
         CameraManager.Instance.CalculateScore(shape);
         return shape;
     }
@@ -495,11 +496,11 @@ public class ShapeManager : Singleton<ShapeManager>
     {
         Shape newShape = ShapePoolManager.Instance.CreateShape(shape);
 
-        newShape.Initialize();
+        newShape.Reset();
         Random_TweakShape(newShape);
         newShape.variantLevel = shape.variantLevel + 1;
 
-        shape.sprite.enabled = false;
+        shape.spriteRenderer.enabled = false;
 
         return newShape;
     }
@@ -558,14 +559,14 @@ public class ShapeManager : Singleton<ShapeManager>
     [System.Obsolete]
     public void Random_Partial_TweakShape(Shape shape, float scalar)
     {
-        if (StaticUtilites.CoinFlip()) shape.RandomizeSprite(scalar);
-        if (StaticUtilites.CoinFlip()) shape.RandomizeRotation(scalar);
-        if (StaticUtilites.ChanceFraction(1, 1000)) shape.RandomizePosition(1);
-        //if (StaticUtilites.CoinFlip()) shape.RandomizePosition(scalar);
-        if (StaticUtilites.CoinFlip()) shape.SetColor(scalar);
-        if (StaticUtilites.CoinFlip()) shape.RandomizeOpacity(scalar);
-        if (StaticUtilites.CoinFlip()) shape.RandomizeScale(scalar);
-        if (StaticUtilites.CoinFlip()) shape.RandomizeZOrder(scalar);
+        if (StaticUtilities.CoinFlip()) shape.RandomizeSprite(scalar);
+        if (StaticUtilities.CoinFlip()) shape.RandomizeRotation(scalar);
+        if (StaticUtilities.ChanceFraction(1, 1000)) shape.RandomizePosition(1);
+        //if (StaticUtilities.CoinFlip()) shape.RandomizePosition(scalar);
+        if (StaticUtilities.CoinFlip()) shape.SetColor(scalar);
+        if (StaticUtilities.CoinFlip()) shape.RandomizeOpacity(scalar);
+        if (StaticUtilities.CoinFlip()) shape.RandomizeScale(scalar);
+        if (StaticUtilities.CoinFlip()) shape.RandomizeZOrder(scalar);
     }
 
     [System.Obsolete]
