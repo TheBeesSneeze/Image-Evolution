@@ -62,12 +62,26 @@ public class EvolutionManager : Singleton<EvolutionManager>
         percentagePoint += new Vector2(UnityEngine.Random.Range(-hardCodedDistance, hardCodedDistance), UnityEngine.Random.Range(-hardCodedDistance, hardCodedDistance));
         percentagePoint = percentagePoint.Clamp(Vector2.zero, Vector2.one);
 
-        int x = (int)(Instance.TextureToSimulate.width * percentagePoint.x);
+
+        /*int x = (int)(Instance.TextureToSimulate.width * percentagePoint.x);
         int y = (int)(Instance.TextureToSimulate.height * percentagePoint.y);
 
+        Debug.Log($"{percentagePoint.ToString()} : ({x},{y})");
 
+        int i = (y * Instance.TextureToSimulate.height) + x;
+        if (i >= targetColors.Length)
+        {
+            Debug.LogError($"Pixel ({x},{y}) is out of range for taget image: {(int)(Instance.TextureToSimulate.width)}x{(int)(Instance.TextureToSimulate.height)}");
+            Debug.LogError($"targetColors has a length of {targetColors.Length}, i is {i}");
+            return Color.black;
+        }
+        
+         return targetColors[i];
+         */
 
-        return targetColors[(y* Instance.TextureToSimulate.height) + x];
+        return EvolutionManager.Instance.TextureToSimulate.GetPixelBilinear(percentagePoint.x, percentagePoint.y);
+
+        
     }
 
 }

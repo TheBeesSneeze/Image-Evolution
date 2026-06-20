@@ -116,7 +116,10 @@ public class CameraManager : Singleton<CameraManager>
         _camera.cullingMask = everythingLayerMask;
         _camera.backgroundColor = bg_color;
 
-        shape.spriteRenderer.enabled = true;
+        shape.ApplyTransformations(showShape: true);
+
+        if (!shape.settingsGenerated) Debug.LogError("Shape has not been initalized!");
+        if (!shape.settingsApplied) Debug.LogError("Shape settings have not been applied!");
 
         _camera.Render();
 

@@ -488,7 +488,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7af88db29df7906408ec50a5bd40e694, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TextureToSimulate: {fileID: 2800000, guid: 0b6601a776e46044a9d4cc82adbafec7, type: 3}
+  TextureToSimulate: {fileID: 2800000, guid: f17ea528c6320734888fb3e3e4ac66c8, type: 3}
   settingsProfile: {fileID: 11400000, guid: 55f31a01cbeac6b4abbdef9f9a23ef3f, type: 2}
   OnRefreshImage:
     m_PersistentCalls:

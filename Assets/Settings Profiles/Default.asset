@@ -33,13 +33,13 @@ MonoBehaviour:
   MaxShapeSize: 5
   MinShapeSize: 0.2
   PreserveAspectRatio: 1
-  SmallShapesSizePreference: 2.75
+  SmallShapesSizePreference: 3.72
   minAlpha: 0.25
   maxAlpha: 1.25
   AverageColorMask: 0
   ApplyAverageToVariants: 0
   FullyRandomColor: 0
-  AnyRandomColorFromImage: 1
+  ShapeColorModes: 3
   randomizeZOrder: 0
   MaxZOrder: 100
   shapeSprites:

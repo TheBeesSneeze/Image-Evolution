@@ -15,6 +15,7 @@ public class Shape
     [ReadOnly]
     public int score = -1;
 
+    public bool settingsGenerated { get; private set; } // to be used by shapemanager
     public bool settingsApplied { get; private set; } // to be used by shapemanager
 
     [HideInInspector] public SpriteRenderer spriteRenderer;
@@ -52,34 +53,39 @@ public class Shape
         this.transform = transform;
         spriteRenderer = transform.GetComponent<SpriteRenderer>();
 
-        Reset(shapeColorMode, randomizeSettings: true);
+        Reset();
         //hasSetColor = false;
         //sprite.color = Color.white;
     }
 
-    public void Reset(ShapeColorMode shapeColorMode, bool randomizeSettings)
+    public void Reset()
     {
         settingsApplied = false;
+        settingsGenerated = false;
         score = -1;
-        this.colorMode = colorMode;
         variantLevel = 0;
 
-        colorMode = shapeColorMode;
-
         spriteRenderer.enabled = false;
+    }
 
-        if (randomizeSettings)
-        {
-            RandomizePosition(1);
-            RandomizeScale(1);
-            RandomizeRotation(1);
-            RandomizeOpacity(1);
-            RandomizeColor(1);
-            RandomizeSprite(1);
-            //RandomizeZOrder(1);
-            RandomizeSpriteFlip(1);
-            ApplyTransformations(showShape: false);
-        }
+    public void InitializeRandomProperties(ShapeColorMode colorMode)
+    {
+        this.colorMode = colorMode; 
+        score = -1;
+        variantLevel = 0;
+
+        RandomizePosition(1);
+        RandomizeScale(1);
+        RandomizeRotation(1);
+        RandomizeOpacity(1);
+        RandomizeColor(1);
+        RandomizeSprite(1);
+        if(ShapeManager.Instance.randomizeZOrder)
+            RandomizeZOrder(1);
+        RandomizeSpriteFlip(1);
+
+        settingsGenerated = true;
+        settingsApplied = false;
     }
 
     public void ApplyTransformations(bool showShape)
@@ -96,6 +102,7 @@ public class Shape
         spriteRenderer.sprite = sprite;
 
         spriteRenderer.enabled = showShape;
+
         settingsApplied = true;
     }
 
@@ -120,8 +127,8 @@ public class Shape
         if (copyLayer)
             layer = other.layer;
 
-        settingsApplied = true;
-        //ApplyTransformations(false);
+        settingsApplied = false;
+        settingsGenerated = true;
     }
 
     public void SetColorMode(ShapeColorMode colorMode)
@@ -165,27 +172,6 @@ public class Shape
         position = newPos;
     }
 
-    //[System.Obsolete]
-    public void RandomizeColorCompletely(float intensityScalar = 1, bool useColorFromTexture = true)
-    {
-        if (colorMode == ShapeColorMode.AverageColorFromTexture)
-            Debug.LogWarning("this is supposed to average");
-
-        Color current = color;
-        Color random;
-
-        if (useColorFromTexture)
-        {
-            //random = StaticUtilities.GetRandomColorFromTexture(EvolutionManager.Instance.TextureToSimulate);
-            random = EvolutionManager.GetRandomColorFromTargetTexture();
-        }
-        else
-            random = new Color(Random.value, Random.value, Random.value);
-
-        random.a = current.a;
-        color = Color.Lerp(current, random, intensityScalar);
-    }
-
     public void RandomizeColor(float intensityScalar = 1, bool randomizeALittle = false)
     {
         if (colorMode == ShapeColorMode.AverageColorFromTexture)
@@ -212,20 +198,19 @@ public class Shape
 
                 if (randomizeALittle)
                 {
-                    float scale = transform.localScale.x;
-                    x_pct = Mathf.Clamp01(x_pct + (0.1f * scale * (Random.value * 2 - 1)));
-                    y_pct = Mathf.Clamp01(y_pct + (0.1f * scale * (Random.value * 2 - 1)));
+                    x_pct = Mathf.Clamp01(x_pct + (0.1f * scale.x * (Random.value * 2 - 1)));
+                    y_pct = Mathf.Clamp01(y_pct + (0.1f * scale.y * (Random.value * 2 - 1)));
                 }
 
                 newColor = EvolutionManager.Instance.TextureToSimulate.GetPixelBilinear(x_pct, y_pct);
                 break;
 
             case ShapeColorMode.CompletelyRandom:
-                RandomizeColorCompletely();
-                return;
+                newColor = Random.ColorHSV();
+                break;
 
             default:
-                Debug.Log($"Unrecognized color mode: {colorMode}");
+                Debug.Log($"Unrecognized color mode: {colorMode.ToString()}");
                 newColor = Color.magenta;
                 break;
         }

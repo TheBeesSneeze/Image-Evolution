@@ -47,7 +47,7 @@ public class ShapeManager : Singleton<ShapeManager>
     public bool FullyRandomColor => settingsProfile.FullyRandomColor;
     private ShapeColorMode _shapeColorModes => settingsProfile.ShapeColorModes; // private
     public List<ShapeColorMode> ShapeColorModes;
-    private bool randomizeZOrder=> settingsProfile.randomizeZOrder;
+    public bool randomizeZOrder=> settingsProfile.randomizeZOrder;
     public int MaxZOrder => settingsProfile.MaxZOrder;
     public List<Sprite> shapeSprites=> settingsProfile.shapeSprites;
 
@@ -89,6 +89,7 @@ public class ShapeManager : Singleton<ShapeManager>
         }
 
         ShapeColorModes = GetColorModes();
+        ShapeColorModes.ForEach(s => Debug.Log(s.ToString()));
 
         //if(settingsProfile.IconUseCounts.Count )
 
@@ -450,17 +451,9 @@ public class ShapeManager : Singleton<ShapeManager>
     {
         Shape shape = ShapePoolManager.Instance.CreateShape() ;
 
-        shape.Reset(randomColorMode, randomizeSettings: true);
-
-        // color is set when score is set
-        shape.RandomizeColor();
-        shape.RandomizeOpacity();
-        shape.RandomizeScale();
-        if (randomizeZOrder)
-            shape.RandomizeZOrder();
-        else
-            shape.spriteRenderer.sortingOrder = shapesCreated;
+        shape.InitializeRandomProperties(randomColorMode);
         CameraManager.Instance.CalculateScore(shape);
+
         return shape;
     }
 
@@ -483,7 +476,7 @@ public class ShapeManager : Singleton<ShapeManager>
     /// </summary>
     public Shape CreateNewShapeVariant(Shape shape)
     {
-        Shape newShape = ShapePoolManager.Instance.CreateShape(shape);
+        Shape newShape = ShapePoolManager.Instance.CopyShape(shape);
         Random_TweakShape(newShape);
         newShape.variantLevel = shape.variantLevel + 1;
 
@@ -494,29 +487,28 @@ public class ShapeManager : Singleton<ShapeManager>
 
     #endregion
 
-    #region Util
+    #region Utility
 
     public List<ShapeColorMode> GetColorModes()
     {
         List<ShapeColorMode> selectedElements = new List<ShapeColorMode>();
-        for (int i = 0; i < System.Enum.GetValues(typeof(ShapeColorMode)).Length; i++)
+
+        var allModes = System.Enum.GetValues(typeof(ShapeColorMode));
+        foreach (ShapeColorMode mode in allModes)
         {
-            int layer = 1 << i;
-            if (((int)_shapeColorModes & layer) != 0)
+            if (_shapeColorModes.HasFlag(mode))
             {
-                selectedElements.Add((ShapeColorMode)i);
+                selectedElements.Add(mode);
             }
         }
+
+        selectedElements.Remove(ShapeColorMode.None);
 
         if(selectedElements.Count <=0)
             selectedElements.Add(ShapeColorMode.AnyRandomColorFromImage);
 
         return selectedElements;
     }
-
-    #endregion
-
-    #region Utility
 
     public ShapeColorMode randomColorMode => ShapeColorModes.GetRandomItem();
 

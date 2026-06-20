@@ -56,7 +56,7 @@ public class SettingsProfile : ScriptableObject
     public bool FullyRandomColor = false;
     //[HideIf(EConditionOperator.Or, "AverageColorMask", "FullyRandomColor")]
 
-    [EnumFlags]
+    //[EnumFlags]
     public ShapeColorMode ShapeColorModes;
 
     // TODO: sample from image position?

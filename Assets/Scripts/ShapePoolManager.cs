@@ -23,21 +23,17 @@ public class ShapePoolManager : Singleton<ShapePoolManager>
 
     private Shape GetNextShape()
     {
-        return shapes.FirstOrDefault(s => s.settingsApplied == false);
+        return shapes.FirstOrDefault(s => s.settingsGenerated == false);
     }
 
-    public Shape CreateShape()
-    {
-        return CreateShape(Vector3.zero, Quaternion.identity);
-    }
-
-    public Shape CreateShape(Shape shape)
+    public Shape CopyShape(Shape shape)
     {
         Shape newShape = GetNextShape();
 
         if (newShape == null)
         {
-            return InstantiateNewShape(shape);
+            newShape = new Shape(Instantiate(shapePrefab).transform, ShapeManager.Instance.randomColorMode);
+            shapes.Add(newShape);
         }
 
         newShape.CopyShape(shape);
@@ -45,17 +41,17 @@ public class ShapePoolManager : Singleton<ShapePoolManager>
         return newShape;
     }
 
-    public Shape CreateShape(Vector3 postion, Quaternion rotation)
+    public Shape CreateShape()
     {
         Shape newShape = GetNextShape();
 
         if(newShape == null)
         {
-            newShape = InstantiateNewShape(postion, rotation);
-            return newShape;
+            newShape = new Shape(Instantiate(shapePrefab).transform, ShapeManager.Instance.randomColorMode);
+            shapes.Add(newShape);
         }
 
-        newShape.Reset(ShapeManager.Instance.randomColorMode, true);
+        newShape.InitializeRandomProperties(ShapeManager.Instance.randomColorMode);
         return newShape;
     }
 
@@ -68,7 +64,7 @@ public class ShapePoolManager : Singleton<ShapePoolManager>
     {
         foreach(Shape shape in shapes)
         {
-            shape.Reset(0, false);
+            shape.Reset();
         }
     }
 
@@ -103,25 +99,4 @@ public class ShapePoolManager : Singleton<ShapePoolManager>
         shapes[idx1] = shapes[idx2];
         shapes[idx2] = temp;
     }
-
-    private Shape InstantiateNewShape(Vector3 postion, Quaternion rotation)
-    {
-        GameObject newShapeGameObject = Instantiate(shapePrefab, postion, rotation);
-        newShapeGameObject.gameObject.layer = CameraManager.Instance.candidateLayer;
-        Shape newShape = new Shape(newShapeGameObject.transform, ShapeManager.Instance.randomColorMode);
-
-        shapes.Add(newShape);
-        return newShape;
-    }
-
-    private Shape InstantiateNewShape(Shape shape)
-    {
-        GameObject newShapeGameObject = Instantiate(shape.gameObject);
-        newShapeGameObject.gameObject.layer = CameraManager.Instance.candidateLayer;
-        Shape newShape = new Shape(newShapeGameObject.transform, ShapeManager.Instance.randomColorMode);
-        shapes.Add(newShape);
-        return newShape;
-    }
-
-    
 }
