@@ -117,6 +117,8 @@ public class CameraManager : Singleton<CameraManager>
         _camera.backgroundColor = bg_color;
 
         shape.ApplyTransformations(showShape: true);
+        shape.spriteRenderer.enabled = true;
+        shape.gameObject.layer = 6;
 
         if (!shape.settingsGenerated) Debug.LogError("Shape has not been initalized!");
         if (!shape.settingsApplied) Debug.LogError("Shape settings have not been applied!");
@@ -136,7 +138,6 @@ public class CameraManager : Singleton<CameraManager>
         resultBuffer.GetData(resultArray); // just one int
         shape.score = (int)resultArray[0];
         shape.spriteRenderer.enabled = false;
-
 
         return shape.score;
     }

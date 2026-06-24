@@ -83,6 +83,8 @@ public class ShapeManager : Singleton<ShapeManager>
         EvolutionManager.Instance.OnRefreshImage.AddListener(SetHalfSize);
 
         settingsProfile.LoadFromFile();
+        EvolutionManager.Instance.settingsProfile = Instantiate(settingsProfile);
+
         if(IconUseCounts == null)
         {
             settingsProfile.IconUseCounts = new();
@@ -153,7 +155,6 @@ public class ShapeManager : Singleton<ShapeManager>
 
             if (i >= generationsToForceStop)
             {
-                // Force stop after baseGenerations * 3
                 if (shapes[0].score <= currentScore)
                     break;
                 
@@ -240,6 +241,7 @@ public class ShapeManager : Singleton<ShapeManager>
 
     private void ConsiderAddingMoreShapes(int generation)
     {
+        // if best shape is low key bad
         if (shapes[0].score >= currentScore /*&& generation < baseGenerations*/)
         {
             //ScoreAllShapes(); // sets the color of all shapes :/ (weird function, but NEEDED for optimization)
@@ -312,7 +314,7 @@ public class ShapeManager : Singleton<ShapeManager>
 
         for ( int i = 0; i < shapes.Count; i++ )
         {
-            int variantsToCreate = shapes[i].score < currentScore ? shapeVariantsIfGoodShapes : shapeVariants;
+            int variantsToCreate = shapes[i].score <= currentScore ? shapeVariantsIfGoodShapes : shapeVariants;
 
             for (int j = 0; j< variantsToCreate; j++)
             {
@@ -348,18 +350,21 @@ public class ShapeManager : Singleton<ShapeManager>
     /// </summary>
     void ShapeSort(int left, int right)
     {
+        shapes = shapes.OrderBy(x => x.score).ToList();
+        return;
+
         if (left >= right)
             return;
 
-        int mid = left + (right - left) / 2;
+        /*int mid = left + (right - left) / 2;
         ShapeSort(left, mid);
         ShapeSort(mid + 1, right);
-        mergeShapeSort(left, mid, right);
+        mergeShapeSort(left, mid, right);*/
     }
 
     void mergeShapeSort(int left, int mid, int right)
     {
-        int n1 = mid - left + 1;
+        /*int n1 = mid - left + 1;
         int n2 = right - mid;
 
         // Create temp vectors
@@ -412,7 +417,7 @@ public class ShapeManager : Singleton<ShapeManager>
             shapes[k] = R[j];
             j++;
             k++;
-        }
+        }*/
     }
 
     #endregion

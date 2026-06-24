@@ -188,7 +188,7 @@ public class Shape
                 newColor = EvolutionManager.GetRandomColorFromTargetTexture();
                 break;
 
-            case ShapeColorMode.RandomColorByPosition:
+            case ShapeColorMode.RandomColorNearPosition:
                 newColor = EvolutionManager.GetRandomColorFromTargetTextureNearPoint(position);
                 break;
 

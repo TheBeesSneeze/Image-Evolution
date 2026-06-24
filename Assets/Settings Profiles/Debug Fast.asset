@@ -10,18 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6d43eedbc239f464db191c038eb59047, type: 3}
-  m_Name: Default
+  m_Name: Debug Fast
   m_EditorClassIdentifier: 
   UseRejectedShapes: 1
   AllRejectedShapes: 1
   IncreaseStandardsIfBadShapes: 0
-  baseGenerations: 10
-  generationsToForceStop: 12
-  initalRandomShapes: 90
-  randomShapesIfBadShapes: 10
-  shapeVariants: 5
-  shapeVariantsIfGoodShapes: 7
-  maxShapes: 7
+  baseGenerations: 3
+  generationsToForceStop: 5
+  initalRandomShapes: 10
+  randomShapesIfBadShapes: 5
+  shapeVariants: 2
+  shapeVariantsIfGoodShapes: 3
+  maxShapes: 15
   ContinueIteratingIfShapeIsBest: 0
   ChanceToChangeSprite: 0.5
   ChanceToFlipSprite: 0.1
@@ -39,7 +39,7 @@ MonoBehaviour:
   AverageColorMask: 0
   ApplyAverageToVariants: 0
   FullyRandomColor: 0
-  ShapeColorModes: 1
+  ShapeColorModes: 3
   randomizeZOrder: 0
   MaxZOrder: 100
   shapeSprites:
